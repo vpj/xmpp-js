@@ -1,0 +1,5 @@
+resource	xmpp-js	modules/
+
+component {c3eb26eb-eaa2-441f-a695-9512199bdbed} components/xmpp.js
+contract @instantbird.org/purple/xmpp;1 {c3eb26eb-eaa2-441f-a695-9512199bdbed}
+category js-protocol-plugin @instantbird.org/purple/xmpp;1 @instantbird.org/purple/xmpp;1
