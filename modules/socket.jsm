@@ -236,6 +236,12 @@ const Socket = {
     }
   },
 
+  // StartTLS
+  startTLS: function() {
+    this.transport.securityInfo.QueryInterface(Ci.nsISSLSocketControl);
+    this.transport.securityInfo.StartTLS();
+  },
+
   sendBinaryData: function(/* ArrayBuffer */ aData) {
     this.log("Sending binary data data: <" + aData + ">");
 
@@ -484,6 +490,7 @@ const Socket = {
 };
 
 
+/*
 // Test some stuff out
 function TestSocket() {
   this.onDataReceived = (function(aData) {
@@ -504,7 +511,6 @@ function TestSocket() {
     this.sendBinaryData(aData);
   }).bind(this);
 }
-/*
 TestSocket.prototype = {
   delimiter: "\r\n",
   binaryMode: true,
