@@ -3,6 +3,11 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
 
+const CONNECTION_STATE = {
+  disconnected: "disconected",
+  connected: "connected"
+};
+
 /* XMPPSession will create the  XMPP connection to create sessions (authentication, etc) */
 /* This will create the connection, handle proxy, parse xml */
 function XMPPConnection(aHost, aPort, aSecurity, aListener) {
@@ -62,6 +67,18 @@ XMPPConnection.prototype = {
 
   onConnectionReset: function() {
     this.setState(CONNECTION_STATE.disconnected);
+  },
+
+  onXmppStanza: function(node) {
+    this.log(node.toString());
+  },
+
+  onStartStream: function() {
+    /* Set state?? */
+  },
+
+  onEndStream: function() {
+    /* Set state?? */
   },
 
 /*
@@ -152,7 +169,4 @@ function createParser(aListener) {
 
   return parser;
 }
-
-
-
 
