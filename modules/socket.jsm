@@ -309,6 +309,7 @@ const Socket = {
   // onDataAvailable, called by Mozilla's networking code.
   // Buffers the data, and parses it into discrete messages.
   onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
+    this.log("Ondataavail - socket");
     if (this.binaryMode) {
       // Load the data from the stream
       this._incomingDataBuffer = this._incomingDataBuffer

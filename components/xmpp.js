@@ -40,6 +40,8 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://xmpp-js/jsProtoHelper.jsm");
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
+Cu.import("resource://xmpp-js/xmlnode.jsm");
+Cu.import("resource://xmpp-js/xmpp-connection.jsm");
 
 function Conversation(aAccount)
 {
@@ -68,27 +70,6 @@ Conversation.prototype = {
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
 
-
-function xmppSocket(aAccount) {
-  this.onDataReceived = aAccount._handleMessage.bind(aAccount);
-  this.onConnection = aAccount._connectionRegistration.bind(aAccount);
-  this.onCertProblem = aAccount._handleCertProblem.bind(aAccount);
-}
-
-xmppSocket.prototype = {
-  __proto__: Socket,
-  delimiter: "",
-  uriScheme: "",
-  connectTimeout: 30000,
-  readWriteTimeout: 30000,
-  log: function(aString) {
-    dump("socket" + " " + aString);
-  },
-  onConnectionReset: function() {
-    this.log('reset');
-  },
-};
-
 function Account(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
@@ -96,17 +77,17 @@ function Account(aProtoInstance, aKey, aName)
 
 Account.prototype = {
   _conv: null,
-  _socket: null,
+  _connection: null,
 
   connect: function() {
     this.base.connecting();
     dump("connecting");
 
-    this._socket = new xmppSocket(this);
-    this._socket.connect("talk.google.com", 443, ["ssl"]);
+    this._connection = new XMPPConnection("talk.google.com", 443, ["ssl"], this);
+    this._connection.connect();
   },
 
-  _handleMessage: function(aRawMessage) {
+  handleMessage: function(aRawMessage) {
     dump(aRawMessage);
     aRawMessage = aRawMessage.replace('<', '&lt;')
                              .replace('>', '&gt;');
@@ -120,10 +101,10 @@ Account.prototype = {
    aMsg = aMsg.replace(/&lt;/g, '<')
               .replace(/&gt;/g, '>')
               .replace(/<br\/>/g, '');
-   this._socket.sendData(aMsg);
+   this._connection.send(aMsg);
   },
 
-  _connectionRegistration: function() {
+  onConnection: function() {
     let self = this;
     setTimeout(function() {
      self._conv = new Conversation(self);

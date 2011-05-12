@@ -1,7 +1,10 @@
+var EXPORTED_SYMBOLS = ["XMPPConnection"];
+
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
+Cu.import("resource://xmpp-js/xmlnode.jsm");
 
 const CONNECTION_STATE = {
   disconnected: "disconected",
@@ -10,23 +13,54 @@ const CONNECTION_STATE = {
 
 /* XMPPSession will create the  XMPP connection to create sessions (authentication, etc) */
 /* This will create the connection, handle proxy, parse xml */
+
+/* Merge these two classes?*/
+function XMPPSocket(aListener) {
+  this.onDataAvailable = aListener.onDataAvailable.bind(aListener);
+  this.onDataReceived = aListener.onDataReceived.bind(aListener);
+  this.onConnection = aListener.onConnection.bind(aListener);
+  this.onCertProblem = aListener.onCertProblem.bind(aListener);
+  this.onConnectionReset = aListener.onConnectionReset.bind(aListener);
+}
+
+XMPPSocket.prototype = {
+  __proto__: Socket,
+  delimiter: "",
+  uriScheme: "",
+  connectTimeout: 30000,
+  readWriteTimeout: 30000,
+  log: function(aString) {
+    dump("socket" + " " + aString);
+  }
+};
+
 function XMPPConnection(aHost, aPort, aSecurity, aListener) {
   this._host = aHost;
   this._port = aPort;
   this._security = aSecurity;
-  this._proxy = aProxy;
+  this._proxy = null; // TODO
   this._listener = aListener;
 
   this._socket = null;
 
   this._state = CONNECTION_STATE.disconnected;
+  this._parser = null;
 }
 
 XMPPConnection.prototype = {
   connect: function() {
-    this.setState(STATE.socket_connecting);
+    this.setState(CONNECTION_STATE.socket_connecting);
 
     this._socket = new XMPPSocket(this);
+    this._parser = createParser(this);
+    this._parseReq = {
+      cancel: function(status) {},
+      isPending: function() {},
+      resume: function() {},
+      suspend: function() {}
+    };
+    this._parser.onStartRequest(this._parseReq, null);
+
     this._socket.connect(this._host, this._port, this._security, this._proxy);
   },
 
@@ -61,16 +95,29 @@ XMPPConnection.prototype = {
    * nsIStreamListener methods
    */
   onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
-    /* No need to handle proxy stuff since it's handled by socket.jsm */
+    /* No need to handle proxy stuff since it's handled by socket.jsm? */
+    this.log("DataAvailable");
     this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
+    //this.log(readInputStreamToString(aInputStream, aCount));
   },
 
   onConnectionReset: function() {
+    this.log("ConnectionReset");
     this.setState(CONNECTION_STATE.disconnected);
   },
 
+  onConnectionTimedOut: function() {
+    this.log("ConnectionTimeout");
+  },
+
+  onDataReceived: function(data) {
+    this.log(data);
+    this._listener.handleMessage(data);
+  },
+
   onXmppStanza: function(node) {
-    this.log(node.toString());
+    this.log(node.convertToString());
+    this._listener.handleMessage(node.convertToString());
   },
 
   onStartStream: function() {
@@ -81,12 +128,12 @@ XMPPConnection.prototype = {
     /* Set state?? */
   },
 
+  log: function(aString) {
+    dump(aString);
+  },
+
 /*
-  log: function(aString) { },
   onConnectionTimedOut: function() { },
-  onConnectionReset: function() { },
-  onCertProblem: function(socketInfo, status, targetSite) { },
-  onBinaryDataReceived: function(aData) { }, // ArrayBuffer
 */
 
   // nsITransportEventSink
@@ -96,9 +143,20 @@ XMPPConnection.prototype = {
   }
 };
 
+function readInputStreamToString(stream, count) {
+  var sstream = Cc['@mozilla.org/scriptableinputstream;1']
+    .createInstance(Ci.nsIScriptableInputStream);
+  sstream.init(stream);
+  return sstream.read(count);
+}
+
+function XXXXX() {
+ this.name = "asdf";
+}
+
 function createParser(aListener) {
-  var parser = Cc['@mozilla.org/saxparser/xmrreader;1']
-               .createInstance(Ci.nsISAXXMLParser);
+  var parser = Cc['@mozilla.org/saxparser/xmlreader;1']
+              .createInstance(Ci.nsISAXXMLReader);
 
   parser.errorHandler = {
     error: function() { },
@@ -122,10 +180,13 @@ function createParser(aListener) {
 
     startElement: function(uri, localName, qName, attributes) {
       if(!this._node) {
-        /* Create an empty node??? wouldn't it keep the whole stream cached? */
+        // Create an empty node??? wouldn't it keep the whole stream cached?
       }
+//      aListener.log('start: ' + qName);
 
-      var node = XMLNode(this._node, uri, localName, qName, attributes);
+      var node = new XMLNode(this._node, uri, localName, qName, attributes);
+//      node = new XXXXX();
+//      aListener.log(node);
       if(this._node) {
         this._node.addChild(node);
       }
@@ -134,21 +195,27 @@ function createParser(aListener) {
     },
 
     characters: function(value) {
-     /* Check */
-     this._node.addText(value);
-    }
+     // Check
+      if(!this._node) {
+        aListener.log('char: ' + qName);
+        return;
+      }
+
+      this._node.addText(value);
+    },
 
     endElement: function(uri, localName, qName) {
       if(!this._node) {
-        // dump
+        aListener.log('end: ' + qName);
+        return;
       }
 
       if(this._node.isXmppStanza()) {
-        aListener.onXmppStanza(node);
+        aListener.onXmppStanza(this._node);
       }
 
-      this._node = this._node.parent;
-    }
+      this._node = this._node.parent_node;
+    },
 
     processingInstruction: function(target, data) {},
 
@@ -166,7 +233,6 @@ function createParser(aListener) {
   };
 
   parser.parseAsync(null);
-
   return parser;
 }
 
