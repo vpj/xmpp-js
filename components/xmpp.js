@@ -90,13 +90,18 @@ Account.prototype = {
   },
 
   onXmppStanza: function(name, stanza) {
-    this.handleMessage(stanza.convertToString());
+    if(name == 'message') {
+      if(stanza.child('body').length > 0)
+       this.handleMessage(stanza.child('body')[0].innerXML());
+    }
+//    this.handleMessage(stanza.convertToString());
   },
 
   handleMessage: function(aRawMessage) {
-//    dump(aRawMessage);
-    aRawMessage = aRawMessage.replace('<', '&lt;')
-                             .replace('>', '&gt;');
+    dump(aRawMessage);
+//    aRawMessage = aRawMessage.replace('<', '&lt;')
+//                             .replace('>', '&gt;');
+//      this._conv.writeMessage('recv', aRawMessage, {system: true});
       this._conv.writeMessage('recv', aRawMessage, {system: true});
   },
 
@@ -104,10 +109,13 @@ Account.prototype = {
   },
 
   sendMessage: function(aMsg) {
+  /*
    aMsg = aMsg.replace(/&lt;/g, '<')
               .replace(/&gt;/g, '>')
               .replace(/<br\/>/g, '');
-   this._connection.send(aMsg);
+  */
+   this._connection.send('<message to="vpjayasiri@gmail.com" xml:lang="en"><body>' +
+   aMsg + '</body></message>');
   },
 
   onConnection: function() {

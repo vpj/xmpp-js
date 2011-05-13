@@ -25,6 +25,10 @@ TextNode.prototype = {
 
   convertToString: function(indent) {
     return indent + this.text + '\n';
+  },
+
+  getXML: function() {
+    return this.text;
   }
 };
 
@@ -33,19 +37,35 @@ function XMLNode(parent_node, uri, localName, qName, attributes) {
   this.uri = uri;
   this.localName = localName;
   this.qName = qName;
-  this.attributes = attributes;
+  this.attributes = {};
   this.children = [];
+  this.cmap = [];
+
+  for(var i = 0; i < attributes.length; ++i) {
+    this.attributes[attributes.getQName(i)] = attributes.getValue(i);
+  }
 }
 
 XMLNode.prototype = {
   get type() "node",
 
   addChild: function(node) {
+    if(this.cmap[node.qName])
+     this.cmap[node.qName].push(node);
+    else
+     this.cmap[node.qName] = [node];
+
     this.children.push(node);
   },
 
   addText: function(text) {
     this.children.push(new TextNode(text));
+  },
+
+  child: function(name) {
+    if(this.cmap[name])
+      return this.cmap[name];
+    return [];
   },
 
   isXmppStanza: function() {
@@ -63,12 +83,37 @@ XMLNode.prototype = {
     if(!indent)
       indent = '';
 
-    var s = indent + '<' + this.qName + ' xmlns:' + this.uri + '>\n';
+    var s = indent + '<' + this.qName + ' xmlns:' + this.uri + ' ' + this.getAttributeText() + '>\n';
 
     for(var i = 0; i < this.children.length; ++i) {
       s += this.children[i].convertToString(indent + ' ');
     }
     s += indent + '</' + this.qName + '>\n';
+
+    return s;
+  },
+
+  getAttributeText: function() {
+    var s = "";
+
+    for(var name in this.attributes) {
+      s += name + '="' + this.attributes[name] + '" ';
+    }
+
+    return s;
+  },
+
+  getXML: function() {
+    return '<' + this.qName + ' xmlns:' + this.uri + ' ' + this.getAttributeText() + '>' +
+        this.innerXML() +
+        '</' + this.qName + '>';
+  },
+
+  innerXML: function() {
+    var s = '';
+    for(var i = 0; i < this.children.length; ++i) {
+      s += this.children[i].getXML();
+    }
 
     return s;
   }
