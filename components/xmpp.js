@@ -41,7 +41,7 @@ Cu.import("resource://xmpp-js/jsProtoHelper.jsm");
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
-Cu.import("resource://xmpp-js/xmpp-connection.jsm");
+Cu.import("resource://xmpp-js/xmpp-session.jsm");
 
 function Conversation(aAccount)
 {
@@ -83,12 +83,18 @@ Account.prototype = {
     this.base.connecting();
     dump("connecting");
 
-    this._connection = new XMPPConnection("talk.google.com", 443, ["ssl"], this);
+    this._connection = 
+        new XMPPSession("talk.google.com", 443, ["ssl"],
+        'bluewoody00', 'gmail.com', 'gsoc2011', this);
     this._connection.connect();
   },
 
+  onXmppStanza: function(name, stanza) {
+    this.handleMessage(stanza.convertToString());
+  },
+
   handleMessage: function(aRawMessage) {
-    dump(aRawMessage);
+//    dump(aRawMessage);
     aRawMessage = aRawMessage.replace('<', '&lt;')
                              .replace('>', '&gt;');
       this._conv.writeMessage('recv', aRawMessage, {system: true});

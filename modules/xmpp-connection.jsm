@@ -52,15 +52,7 @@ XMPPConnection.prototype = {
     this.setState(CONNECTION_STATE.socket_connecting);
 
     this._socket = new XMPPSocket(this);
-    this._parser = createParser(this);
-    this._parseReq = {
-      cancel: function(status) {},
-      isPending: function() {},
-      resume: function() {},
-      suspend: function() {}
-    };
-    this._parser.onStartRequest(this._parseReq, null);
-
+    this.reset();
     this._socket.connect(this._host, this._port, this._security, this._proxy);
   },
 
@@ -71,6 +63,17 @@ XMPPConnection.prototype = {
   close: function() {
    this._socket.disconnect();
    this.setState(CONNECTION_STATE.disconnected);
+  },
+
+  reset: function() {
+    this._parser = createParser(this);
+    this._parseReq = {
+      cancel: function(status) {},
+      isPending: function() {},
+      resume: function() {},
+      suspend: function() {}
+    };
+    this._parser.onStartRequest(this._parseReq, null);
   },
 
   // Callbacks
@@ -114,9 +117,9 @@ XMPPConnection.prototype = {
     this._listener.handleMessage(data);
   },
 
-  onXmppStanza: function(node) {
-    this.log(node.convertToString());
-    this._listener.handleMessage(node.convertToString());
+  onXmppStanza: function(name, stanza) {
+    this.log(stanza.convertToString());
+    this._listener.onXmppStanza(name, stanza);
   },
 
   onStartStream: function() {
@@ -199,7 +202,7 @@ function createParser(aListener) {
       }
 
       if(this._node.isXmppStanza()) {
-        aListener.onXmppStanza(this._node);
+        aListener.onXmppStanza(qName, this._node);
       }
 
       this._node = this._node.parent_node;
