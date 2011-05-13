@@ -73,7 +73,7 @@ XMPPConnection.prototype = {
    this.setState(CONNECTION_STATE.disconnected);
   },
 
-  /* Callbacks */
+  // Callbacks
   onConnection: function() {
     this.setState(CONNECTION_STATE.connected);
   },
@@ -91,9 +91,8 @@ XMPPConnection.prototype = {
     /* Open the add excetion dialog and reconnect
       Should this be part of the socket.jsm since all plugins using socket.jsm will need it? */
   },
-  /*
-   * nsIStreamListener methods
-   */
+
+  // nsIStreamListener methods
   onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
     /* No need to handle proxy stuff since it's handled by socket.jsm? */
     this.log("DataAvailable");
@@ -132,10 +131,6 @@ XMPPConnection.prototype = {
     dump(aString);
   },
 
-/*
-  onConnectionTimedOut: function() { },
-*/
-
   // nsITransportEventSink
   onTransportStatus: function(aTransport, aStatus, aProgress, aProgressmax) {
    /* statues == COnNECTED_TO
@@ -148,10 +143,6 @@ function readInputStreamToString(stream, count) {
     .createInstance(Ci.nsIScriptableInputStream);
   sstream.init(stream);
   return sstream.read(count);
-}
-
-function XXXXX() {
- this.name = "asdf";
 }
 
 function createParser(aListener) {
@@ -180,13 +171,11 @@ function createParser(aListener) {
 
     startElement: function(uri, localName, qName, attributes) {
       if(!this._node) {
-        // Create an empty node??? wouldn't it keep the whole stream cached?
       }
-//      aListener.log('start: ' + qName);
+      // TODO:Should <stream:stream> be ignored? Otherwise the whole stream will be kept in memory
+      aListener.log('start: ' + qName);
 
       var node = new XMLNode(this._node, uri, localName, qName, attributes);
-//      node = new XXXXX();
-//      aListener.log(node);
       if(this._node) {
         this._node.addChild(node);
       }
@@ -195,7 +184,6 @@ function createParser(aListener) {
     },
 
     characters: function(value) {
-     // Check
       if(!this._node) {
         aListener.log('char: ' + qName);
         return;

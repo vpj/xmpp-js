@@ -16,6 +16,17 @@ var $FIRST_LEVEL_ELEMENTS = {
   'error'               : 'urn:ietf:params:xml:ns:xmpp-streams',
 };
 
+function TextNode(text) {
+  this.text = text;
+}
+
+TextNode.prototype = {
+  get type() "text",
+
+  convertToString: function(indent) {
+    return indent + this.text + '\n';
+  }
+};
 
 function XMLNode(parent_node, uri, localName, qName, attributes) {
   this.parent_node = parent_node;
@@ -24,19 +35,21 @@ function XMLNode(parent_node, uri, localName, qName, attributes) {
   this.qName = qName;
   this.attributes = attributes;
   this.children = [];
-  this.text = [];
 }
 
 XMLNode.prototype = {
+  get type() "node",
+
   addChild: function(node) {
     this.children.push(node);
   },
 
   addText: function(text) {
-    this.text.push(text);
+    this.children.push(new TextNode(text));
   },
 
   isXmppStanza: function() {
+//    return true;
     if($FIRST_LEVEL_ELEMENTS[this.qName] && ($FIRST_LEVEL_ELEMENTS[this.qName] == this.uri ||
        ($FIRST_LEVEL_ELEMENTS[this.qName] instanceof Array &&
        $FIRST_LEVEL_ELEMENTS[this.qName].indexOf(this.uri) != -1)))
@@ -51,11 +64,13 @@ XMLNode.prototype = {
       indent = '';
 
     var s = indent + '<' + this.qName + ' xmlns:' + this.uri + '>\n';
+
     for(var i = 0; i < this.children.length; ++i) {
       s += this.children[i].convertToString(indent + ' ');
     }
-    s += indent + '</ ' + this.qName + '>';
+    s += indent + '</' + this.qName + '>\n';
 
     return s;
   }
 };
+
