@@ -91,8 +91,8 @@ Account.prototype = {
 
   onXmppStanza: function(name, stanza) {
     if(name == 'message') {
-      if(stanza.child('body').length > 0)
-       this.handleMessage(stanza.child('body')[0].innerXML());
+      if(stanza.getChildren('body').length > 0)
+       this.handleMessage(stanza.getChildren('body')[0].innerXML());
     }
 //    this.handleMessage(stanza.convertToString());
   },

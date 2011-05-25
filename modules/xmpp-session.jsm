@@ -6,6 +6,7 @@ Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-connection.jsm");
+Cu.import("resource://xmpp-js/xmpp-authmechs.jsm");
 
 const STATE = {
   disconnected: "disconected",
@@ -32,6 +33,9 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._domain = aDomain;
   this._password = aPassword;
   this._listener = aListener;
+  this._auth = null;
+  this._authMechs = {PLAIN: PlainAuth};
+  this._resource = 'rabbithole';
 
   this._state = STATE.disconnected;
 }
@@ -69,12 +73,28 @@ XMPPSession.prototype = {
     this.log("onStanza");
     switch(this._state) {
       case STATE.initializing_stream:
-        //TODO: Check stanza features
-        // Hard coded for PLAIN
-        this.setState(STATE.auth_waiting_results);
-        this.send("<auth xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\" mechanism=\"PLAIN\">"
-            + Base64.encode("\0" + this._jid + "\0" + this._password)
-            + "</auth>");
+        //TODO: Check stanzastarttls
+
+        var mechs = this._getMechanisms(stanza);
+        dump(mechs);
+        for(var i = 0; i < mechs.length; ++i) {
+          if(this._authMechs[mechs[i]]) {
+            // TODO: Parameters
+            this._auth = new this._authMechs[mechs[i]](this._jid, this._password);
+            break;
+          }
+        }
+
+        if(!this._auth) {
+        //TODO: fail
+        }
+
+      case STATE.auth_starting:
+        var res = this._auth.next(stanza);
+        if(res.send)
+          this.send(res.send);
+        if(res.wait_results == true)
+          this.setState(STATE.auth_waiting_results);
         break;
 
       case STATE.auth_waiting_results:
@@ -86,12 +106,17 @@ XMPPSession.prototype = {
 
       case STATE.auth_success:
         this.setState(STATE.auth_bind);
-        this.send('<iq id="c1h4r9rx" type="set"><bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"><resource>testinstantbird</resource></bind></iq>');
+        var s = Stanza.iq('set', null, null,
+            Stanza.node('bind', $NS.bind, {},
+              Stanza.node('resource', null, {}, this._resource)));
+        this.send(s.getXML());
         break;
 
       case STATE.auth_bind:
         this.setState(STATE.start_session);
-        this.send('<iq id="vyq6z751" type="set"><session xmlns="urn:ietf:params:xml:ns:xmpp-session"/></iq>');
+        var s = Stanza.iq('set', 'adfds', null,
+            Stanza.node('session', $NS.session, {}, []));
+        this.send(s.getXML());
         break;
 
       case STATE.start_session:
@@ -99,11 +124,26 @@ XMPPSession.prototype = {
         this._listener.onConnection();
         break;
 
-      // TODO: Efficient the method was assigned
+      // TODO: Efficient if the method was assigned
       case STATE.session_started:
         this._listener.onXmppStanza(name, stanza);
         break;
     }
+  },
+
+  _getMechanisms: function(stanza) {
+    if(stanza.localName != 'features')
+      return [];
+    var mechs = stanza.getChildren('mechanisms');
+    var res = [];
+    for(var i = 0; i < mechs.length; ++i) {
+      var mech = mechs[i].getChildren('mechanism');
+      for(var j = 0; j < mech.length; ++j) {
+        res.push(mech[j].innerXML());
+      }
+    }
+
+    return res;
   }
 };
 

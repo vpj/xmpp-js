@@ -41,6 +41,9 @@ const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 Cu.import("resource:///modules/imServices.jsm");
 
 function dump(str) {
+  if(typeof(str) == 'undefined' || !str)
+    str == "##null##";
+
   Services.console.logStringMessage(str);
 }
 
