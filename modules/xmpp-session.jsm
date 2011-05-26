@@ -11,6 +11,7 @@ Cu.import("resource://xmpp-js/xmpp-authmechs.jsm");
 const STATE = {
   disconnected: "disconected",
   initializing_stream: "initializing_stream",
+  requested_tls: "requested_tls",
   auth_waiting_results: "auth_waiting_results",
   auth_success: "auth_success",
   auth_bind: "auth_bind",
@@ -74,6 +75,18 @@ XMPPSession.prototype = {
     switch(this._state) {
       case STATE.initializing_stream:
         //TODO: Check stanzastarttls
+        var starttls = this._isStartTLS(stanza);
+        if(this._connection.isStartTLS) {
+          if(starttls == 'required' || starttls == 'optional') {
+            var n =  Stanza.node('starttls', $NS.tls, {}, []);
+            this.send(n.getXML());
+            this.setState(STATE.requested_tls);
+            break;
+          }
+        }
+        if(starttls == 'required' && !this._connection.isStartTLS) {
+          // TODO error
+        }
 
         var mechs = this._getMechanisms(stanza);
         dump(mechs);
@@ -95,6 +108,13 @@ XMPPSession.prototype = {
           this.send(res.send);
         if(res.wait_results == true)
           this.setState(STATE.auth_waiting_results);
+        break;
+
+      case STATE.requested_tls:
+        this._connection.reset();
+        this._connection.startTLS();
+        this.setState(STATE.initializing_stream);
+        this.startStream();
         break;
 
       case STATE.auth_waiting_results:
@@ -142,8 +162,30 @@ XMPPSession.prototype = {
         res.push(mech[j].innerXML());
       }
     }
-
     return res;
+  },
+
+  _isStartTLS: function(stanza) {
+    if(stanza.localName != 'features')
+      return '';
+    var required = false;
+    var optional = false;
+    var starttls = stanza.getChildren('starttls');
+    for(var i = 0; i < starttls.length; ++i) {
+      for(var j = 0; j < starttls[i].children.length; ++j) {
+        if(starttls[i].children[j].localName == 'required')
+          required = true;
+        else if(starttls[i].children[j].localName == 'optional')
+          optional = true;
+      }
+    }
+
+    if(optional)
+      return 'optional';
+    else if(required)
+      return 'required';
+    else
+      return 'no';
   }
 };
 

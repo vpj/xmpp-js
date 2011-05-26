@@ -34,11 +34,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS = ["dump", "Base64"];
+var EXPORTED_SYMBOLS = ["async", "dump", "Base64"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imServices.jsm");
+
+function async(fn) {
+  Cc['@mozilla.org/timer;1']
+      .createInstance(Ci.nsITimer)
+      .initWithCallback({notify: function(timer) fn() },
+                        0,
+                        Ci.nsITimer.TYPE_ONE_SHOT);
+}
 
 function dump(str) {
   if(typeof(str) == 'undefined' || !str)

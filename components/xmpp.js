@@ -83,8 +83,11 @@ Account.prototype = {
     this.base.connecting();
     dump("connecting");
 
+//    this._connection = 
+//        new XMPPSession("talk.google.com", 443, ["ssl"],
+//        'bluewoody00', 'gmail.com', 'gsoc2011', this);
     this._connection = 
-        new XMPPSession("talk.google.com", 443, ["ssl"],
+        new XMPPSession("talk.google.com", 5222, ["starttls"],
         'bluewoody00', 'gmail.com', 'gsoc2011', this);
     this._connection.connect();
   },

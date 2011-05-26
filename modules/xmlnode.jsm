@@ -155,7 +155,7 @@ function XMLNode(parent_node, uri, localName, qName, attributes) {
   this.qName = qName;
   this.attributes = {};
   this.children = [];
-  this.cmap = [];
+  this.cmap = {};
 
   if(attributes) {
     for(var i = 0; i < attributes.length; ++i) {

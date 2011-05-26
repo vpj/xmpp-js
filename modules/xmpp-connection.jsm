@@ -37,7 +37,12 @@ XMPPSocket.prototype = {
 function XMPPConnection(aHost, aPort, aSecurity, aListener) {
   this._host = aHost;
   this._port = aPort;
+  this._isStartTLS = false;
   this._security = aSecurity;
+  if(this._security.indexOf('starttls') != -1) {
+    this._isStartTLS = true;
+  }
+
   this._proxy = null; // TODO
   this._listener = aListener;
 
@@ -48,6 +53,8 @@ function XMPPConnection(aHost, aPort, aSecurity, aListener) {
 }
 
 XMPPConnection.prototype = {
+  get isStartTLS() this._isStartTLS,
+
   connect: function() {
     this.setState(CONNECTION_STATE.socket_connecting);
 
@@ -76,6 +83,10 @@ XMPPConnection.prototype = {
     this._parser.onStartRequest(this._parseReq, null);
   },
 
+  startTLS: function() {
+    this._socket.startTLS();
+  },
+
   // Callbacks
   onConnection: function() {
     this.setState(CONNECTION_STATE.connected);
@@ -93,6 +104,39 @@ XMPPConnection.prototype = {
   onCertProblem: function(socketInfo, status, targetSite) {
     /* Open the add excetion dialog and reconnect
       Should this be part of the socket.jsm since all plugins using socket.jsm will need it? */
+    this._addCertificate();
+  },
+
+  _addCertificate: function() {
+    var prmt = Cc['@mozilla.org/embedcomp/prompt-service;1']
+        .getService(Ci.nsIPromptService);
+    var add = prmt.confirm(
+        null,
+        'Bad certificate',
+        'Server "' + this._host + ':' + this._port + '"');
+
+    if(!add)
+     return;
+
+    var args = {
+      exceptionAdded: false,
+      location: 'https://' + this._host + ':' + this._port,
+      prefetchCert: true
+    };
+    var options = 'chrome=yes,modal=yes,centerscreen=yes';
+
+    // FIXME: This dialog is giving errors :S
+    var ww = Cc['@mozilla.org/embedcomp/window-watcher;1']
+          .getService(Ci.nsIWindowWatcher)
+    var self = this;
+    async(function() {
+      ww.openWindow(null,
+            'chrome://pippki/content/exceptionDialog.xul',
+            '',
+            'chrome,modal,centerscreen',
+            args);
+      self.log('Window closed');
+    });
   },
 
   // nsIStreamListener methods
