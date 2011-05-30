@@ -35,7 +35,7 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._password = aPassword;
   this._listener = aListener;
   this._auth = null;
-  this._authMechs = {PLAIN: PlainAuth};
+  this._authMechs = {'PLAIN': PlainAuth, 'DIGEST-MD5': DigestMD5Auth};
   this._resource = 'rabbithole';
 
   this._state = STATE.disconnected;
@@ -93,7 +93,9 @@ XMPPSession.prototype = {
         for(var i = 0; i < mechs.length; ++i) {
           if(this._authMechs[mechs[i]]) {
             // TODO: Parameters
-            this._auth = new this._authMechs[mechs[i]](this._jid, this._password);
+            // TODO: parse the jabber id and get the username
+            this._auth = new this._authMechs[mechs[i]](
+                this._jid, this._password, this._domain, 'jayasiri');
             break;
           }
         }

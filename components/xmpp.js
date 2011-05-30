@@ -66,7 +66,7 @@ Conversation.prototype = {
       this.account.disconnect(true);
   },
 
-  get name() "X"
+  get name() "Test Console"
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
 
@@ -83,42 +83,40 @@ Account.prototype = {
     this.base.connecting();
     dump("connecting");
 
-//    this._connection = 
-//        new XMPPSession("talk.google.com", 443, ["ssl"],
-//        'bluewoody00', 'gmail.com', 'gsoc2011', this);
-    this._connection = 
-        new XMPPSession("talk.google.com", 5222, ["starttls"],
+    this._connection =
+//        new XMPPSession("chat.facebook.com", 5222, [],
+        new XMPPSession("talk.google.com", 443, ["ssl"],
         'bluewoody00', 'gmail.com', 'gsoc2011', this);
+//        new XMPPSession("talk.google.com", 5222, ["starttls"],
+//        'bluewoody00', 'gmail.com', 'gsoc2011', this);
     this._connection.connect();
   },
 
   onXmppStanza: function(name, stanza) {
+/*    var s = stanza.convertToString();
+    s = s.replace('<', '&lt;').replace('>', '&gt;');
+    this._conv.writeMessage('recv', s, {system: true});*/
     if(name == 'message') {
       if(stanza.getChildren('body').length > 0)
        this.handleMessage(stanza.getChildren('body')[0].innerXML());
     }
-//    this.handleMessage(stanza.convertToString());
   },
 
   handleMessage: function(aRawMessage) {
-    dump(aRawMessage);
-//    aRawMessage = aRawMessage.replace('<', '&lt;')
-//                             .replace('>', '&gt;');
-//      this._conv.writeMessage('recv', aRawMessage, {system: true});
-      this._conv.writeMessage('recv', aRawMessage, {system: true});
+    this._conv.writeMessage('recv', aRawMessage, {incoming: true});
   },
 
   _handleCertProblem: function(socketInfo, status, targetSite) {
   },
 
   sendMessage: function(aMsg) {
-  /*
    aMsg = aMsg.replace(/&lt;/g, '<')
               .replace(/&gt;/g, '>')
               .replace(/<br\/>/g, '');
-  */
-   this._connection.send('<message to="vpjayasiri@gmail.com" xml:lang="en"><body>' +
-   aMsg + '</body></message>');
+  
+//   this._connection.send('<message to="vpjayasiri@gmail.com" xml:lang="en"><body>' +
+//   aMsg + '</body></message>');
+   this._connection.send(aMsg);
   },
 
   onConnection: function() {

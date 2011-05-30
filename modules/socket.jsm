@@ -362,38 +362,11 @@ const Socket = {
       this.onConnectionReset();
   },
 
-  onCertProblem: function(socketInfo, status, targeSite) {
-    this._addCertificate();
-  },
-
   /*
    *****************************************************************************
    ****************************** Private methods ******************************
    *****************************************************************************
    */
-  _addCertificate: function() {
-    var args = {
-      exceptionAdded: false,
-      location: 'https://' + this.host + ':' + this.port,
-      prefetchCert: true
-    };
-    this.log(args.location);
-    this.log('adfasdfas dfasdfasdf ');
-    var options = 'chrome=yes,modal=yes,centerscreen=yes';
-
-    var ww = Cc['@mozilla.org/embedcomp/window-watcher;1']
-          .getService(Ci.nsIWindowWatcher)
-    async(function() {
-    ww.openWindow(null,
-          'chrome://pippki/content/exceptionDialog.xul',
-          'exceptionDialog',
-          '',
-          args);
-    this.log(args.location);
-    this.log('ppppppppppppp');
-    });
-  },
-
   _resetBuffers: function() {
     this._incomingDataBuffer = this.binaryMode ? [] : "";
     this._outgoingDataBuffer = [];
