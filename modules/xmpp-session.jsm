@@ -7,6 +7,7 @@ Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-connection.jsm");
 Cu.import("resource://xmpp-js/xmpp-authmechs.jsm");
+Cu.import("resource://xmpp-js/events.jsm");
 
 const STATE = {
   disconnected: "disconected",
@@ -37,7 +38,7 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._auth = null;
   this._authMechs = {'PLAIN': PlainAuth, 'DIGEST-MD5': DigestMD5Auth};
   this._resource = 'rabbithole';
-
+  this._events = new StanzaEventManager();
   this._state = STATE.disconnected;
 }
 
@@ -49,6 +50,19 @@ XMPPSession.prototype = {
 
   send: function(aMsg) {
     this._connection.send(aMsg);
+  },
+
+  sendStanza: function(stanza, callback) {
+    stanza.attributes['id'] = this.id();
+    if(callback)
+      this._events.add(stanza.attributes.id, callback);
+    this.send(stanza.getXML());
+    return stanza.attributes.id;
+  },
+
+  id: function() {
+    this._stanzaId++;
+    return this._stanzaId;
   },
 
   onConnection: function() {
@@ -149,6 +163,9 @@ XMPPSession.prototype = {
       // TODO: Efficient if the method was assigned
       case STATE.session_started:
         this._listener.onXmppStanza(name, stanza);
+        if(stanza.attributes.id)
+          this._events.exec(stanza.attributes.id, name, stanza);
+
         break;
     }
   },
