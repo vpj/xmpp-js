@@ -102,6 +102,10 @@ const Stanza = {
     }
   },
 
+  presence: function(attr, data) {
+    return Stanza.node('presence', null, attr, data);
+  },
+
   iq: function(type, id, to, data) {
     var n = new XMLNode(null, null, 'iq', 'iq', null)
     if(id)

@@ -113,7 +113,7 @@ Account.prototype = {
    aMsg = aMsg.replace(/&lt;/g, '<')
               .replace(/&gt;/g, '>')
               .replace(/<br\/>/g, '');
-  
+
 //   this._connection.send('<message to="vpjayasiri@gmail.com" xml:lang="en"><body>' +
 //   aMsg + '</body></message>');
    this._connection.send(aMsg);
@@ -125,6 +125,18 @@ Account.prototype = {
      self._conv = new Conversation(self);
      self._conv.writeMessage("xmpp", "You're connected to the server", {system: true});
     }, 0);
+    var s = Stanza.iq('get', null, null,
+        Stanza.node('query', $NS.roster, {}, []));
+
+    this._connection.sendStanza(s, this.onRoster, this);
+  },
+
+  onRoster: function(name, stanza) {
+    dump('roster: ' + stanza.getXML());
+    var s = Stanza.presence({'xml:lang': 'en'},
+         [Stanza.node('show', null, null, 'dnd'),
+          Stanza.node('status', null, null, 'Whazzaaa')]);
+    this._connection.sendStanza(s);
   },
 
   gotDisconnected: function(aError, aErrorMessage) {

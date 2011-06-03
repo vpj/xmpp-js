@@ -40,6 +40,7 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._resource = 'rabbithole';
   this._events = new StanzaEventManager();
   this._state = STATE.disconnected;
+  this._stanzaId = 0;
 }
 
 XMPPSession.prototype = {
@@ -52,10 +53,10 @@ XMPPSession.prototype = {
     this._connection.send(aMsg);
   },
 
-  sendStanza: function(stanza, callback) {
+  sendStanza: function(stanza, callback, obj) {
     stanza.attributes['id'] = this.id();
     if(callback)
-      this._events.add(stanza.attributes.id, callback);
+      this._events.add(stanza.attributes.id, callback, obj);
     this.send(stanza.getXML());
     return stanza.attributes.id;
   },
@@ -93,7 +94,7 @@ XMPPSession.prototype = {
         if(this._connection.isStartTLS) {
           if(starttls == 'required' || starttls == 'optional') {
             var n =  Stanza.node('starttls', $NS.tls, {}, []);
-            this.send(n.getXML());
+            this.sendStanza(n);
             this.setState(STATE.requested_tls);
             break;
           }
@@ -145,14 +146,14 @@ XMPPSession.prototype = {
         var s = Stanza.iq('set', null, null,
             Stanza.node('bind', $NS.bind, {},
               Stanza.node('resource', null, {}, this._resource)));
-        this.send(s.getXML());
+        this.sendStanza(s);
         break;
 
       case STATE.auth_bind:
         this.setState(STATE.start_session);
-        var s = Stanza.iq('set', 'adfds', null,
+        var s = Stanza.iq('set', null, null,
             Stanza.node('session', $NS.session, {}, []));
-        this.send(s.getXML());
+        this.sendStanza(s);
         break;
 
       case STATE.start_session:
