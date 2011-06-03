@@ -133,6 +133,25 @@ Account.prototype = {
 
   onRoster: function(name, stanza) {
     dump('roster: ' + stanza.getXML());
+
+    let self = this;
+
+    var q = stanza.getChildren('query');
+    for(var i = 0; i < q.length; ++i) {
+      if(q[i].uri == $NS.roster) {
+        var items = q[i].getChildren('item');
+        for(var j = 0; j < items.length; ++j) {
+          var name = q[i].attributes['name'];
+          if(!name)
+            name = q[i].attributes['jid'];
+
+          setTimeout(function() {
+            self.addBuddy(self.createTag('friend'), 'vpjayasiri');
+          }, 0);
+        }
+      }
+    }
+
     var s = Stanza.presence({'xml:lang': 'en'},
          [Stanza.node('show', null, null, 'dnd'),
           Stanza.node('status', null, null, 'Whazzaaa')]);
