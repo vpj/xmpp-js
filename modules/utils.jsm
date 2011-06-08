@@ -34,11 +34,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS = ["async", "dump", "b64", "MD5", "digestMD5"];
+var EXPORTED_SYMBOLS = ["async",
+                        "dump",
+                        "dumpJSON",
+                        "b64",
+                        "MD5",
+                        "parseJID",
+                        "digestMD5"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imServices.jsm");
+
+function parseJID(jid) {
+  var res = {};
+  var v = jid.split('/');
+  if(v.length == 1)
+    res.resource = "";
+  else
+    res.resource = jid.substr(v[0].length + 1);
+
+  res.jid = v[0];
+
+  v = jid.split('@');
+  res.node = v[0];
+  v = v.length > 1 ? v[1] : v[0]
+  res.domain = v.split('/')[0];
+
+  dumpJSON(res);
+  return res;
+}
 
 function async(fn) {
   Cc['@mozilla.org/timer;1']
@@ -50,9 +75,32 @@ function async(fn) {
 
 function dump(str) {
   if(typeof(str) == 'undefined' || !str)
-    str == "##null##";
+    str == "null";
 
   Services.console.logStringMessage('' + str);
+}
+
+function getJSON(obj) {
+  if(typeof(obj) == "undefined" || !obj) {
+    return "null";
+  }
+
+  var res = "";
+
+  if(typeof(obj) == 'object') {
+    res = "{"
+    for(var v in obj) {
+      res += ' ' + v + ' = ' + getJSON(obj[v]) + '\n';
+    }
+    res += "}";
+  } else
+    res = "" + obj;
+
+  return res;
+}
+
+function dumpJSON(obj) {
+  dump(getJSON(obj));
 }
 
 function utf8_encode(string) {

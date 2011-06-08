@@ -183,6 +183,44 @@ XMLNode.prototype = {
   addText: function(text) {
     this.children.push(new TextNode(text));
   },
+  
+  getElement: function(query) {
+   if(query.length == 0)
+     return null;
+   if(this.qName != query[0])
+     return null;
+   if(query.length == 1)
+     return this;
+
+   var c = this.getChildren(query[1]);
+   var nq = query.slice(1);
+   for(var i = 0; i < c.length; ++i) {
+     var n = c[i].getElement(nq);
+     if(n)
+       return n;
+   }
+
+   return null;
+  },
+
+  getElements: function(query) {
+   if(query.length == 0)
+     return [];
+   if(this.qName != query[0])
+     return [];
+   if(query.length == 1)
+     return [this];
+
+   var c = this.getChildren(query[1]);
+   var nq = query.slice(1);
+   var res = [];
+   for(var i = 0; i < c.length; ++i) {
+     var n = c[i].getElements(nq);
+     res = res.concat(n);
+   }
+
+   return res;
+  },
 
   getChildren: function(name) {
     if(this.cmap[name])

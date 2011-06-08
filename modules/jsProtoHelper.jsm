@@ -238,13 +238,6 @@ const GenericAccountPrototype = {
     this._base.init(aKey, aName, aProtoInstance);
   },
 
-  //FIXME
-  createTag: function(aTagName) {
-    return Components.classes["@instantbird.org/purple/tags-service;1"]
-                     .getService(Ci.imITagsService)
-                     .createTag(aTagName);
-  },
-
   addBuddy: function(aTag, aName) {
     Components.classes["@instantbird.org/purple/contacts-service;1"]
               .getService(Ci.imIContactsService)

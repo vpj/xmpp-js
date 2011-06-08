@@ -150,6 +150,12 @@ XMPPSession.prototype = {
         break;
 
       case STATE.auth_bind:
+        var jid = stanza.getElement(['iq', 'bind', 'jid']);
+        dump("jid = " + jid.innerXML());
+        dumpJSON(['asdf', 10, 12, 'asdfas']);
+        this._fullJID = jid.innerXML();
+        this._JID = parseJID(this._fullJID);
+        this._resource = this._JID.resource;
         this.setState(STATE.start_session);
         var s = Stanza.iq('set', null, null,
             Stanza.node('session', $NS.session, {}, []));

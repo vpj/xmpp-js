@@ -70,6 +70,12 @@ Conversation.prototype = {
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
 
+
+function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
+  this._init(aAccount, aBuddy, aTag, aUserName);
+}
+AccountBuddy.prototype = GenericAccountBuddyPrototype;
+
 function Account(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
@@ -131,6 +137,22 @@ Account.prototype = {
     this._connection.sendStanza(s, this.onRoster, this);
   },
 
+  createTag: function(aTagName) {
+    return Components.classes["@instantbird.org/purple/tags-service;1"]
+                     .getService(Ci.imITagsService)
+                     .createTag(aTagName);
+  },
+
+  addBuddy: function(aTagName, aName) {
+    var tag = this.createTag(aTagName);
+    var buddy = new AccountBuddy(this, null, tag, aName);
+//    this._buddies[aName] = buddy;
+
+    Components.classes["@instantbird.org/purple/contacts-service;1"]
+              .getService(Ci.imIContactsService)
+              .accountBuddyAdded(buddy);
+  },
+ 
   onRoster: function(name, stanza) {
     dump('roster: ' + stanza.getXML());
 
@@ -141,12 +163,12 @@ Account.prototype = {
       if(q[i].uri == $NS.roster) {
         var items = q[i].getChildren('item');
         for(var j = 0; j < items.length; ++j) {
-          var name = q[i].attributes['name'];
+          var name = items[i].attributes['name'];
           if(!name)
-            name = q[i].attributes['jid'];
+            name = items[i].attributes['jid'];
 
           setTimeout(function() {
-            self.addBuddy(self.createTag('friend'), 'vpjayasiri');
+            self.addBuddy('friend', name);
           }, 0);
         }
       }
