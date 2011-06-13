@@ -37,7 +37,7 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._listener = aListener;
   this._auth = null;
   this._authMechs = {'PLAIN': PlainAuth, 'DIGEST-MD5': DigestMD5Auth};
-  this._resource = 'rabbithole';
+  this._resource = 'instantbird';
   this._events = new StanzaEventManager();
   this._state = STATE.disconnected;
   this._stanzaId = 0;
@@ -169,7 +169,13 @@ XMPPSession.prototype = {
 
       // TODO: Efficient if the method was assigned
       case STATE.session_started:
-        this._listener.onXmppStanza(name, stanza);
+        if(name == 'presence')
+          this._listener.onPresenceStanza(stanza);
+        else if(name == 'message')
+          this._listener.onMessageStanza(stanza);
+        else
+          this._listener.onXmppStanza(name, stanza);
+
         if(stanza.attributes.id)
           this._events.exec(stanza.attributes.id, name, stanza);
 

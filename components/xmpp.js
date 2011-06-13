@@ -84,6 +84,7 @@ function Account(aProtoInstance, aKey, aName)
 Account.prototype = {
   _conv: null,
   _connection: null,
+  _buddies: {},
 
   connect: function() {
     this.base.connecting();
@@ -102,10 +103,32 @@ Account.prototype = {
 /*    var s = stanza.convertToString();
     s = s.replace('<', '&lt;').replace('>', '&gt;');
     this._conv.writeMessage('recv', s, {system: true});*/
-    if(name == 'message') {
-      if(stanza.getChildren('body').length > 0)
-       this.handleMessage(stanza.getChildren('body')[0].innerXML());
-    }
+  },
+
+  onPresenceStanza: function(stanza) {
+    var from = stanza.attributes['from'];
+    // TODO: exceptions
+    from = parseJID(from).jid;
+    dump(from);
+    var buddy = this._buddies[normalize(from)];
+    dump(buddy._buddy.id);
+    buddy.setStatus(Ci.imIStatusInfo.STATUS_AVAILABLE, 'wowzaaa', 10);
+    buddy.serverAlias = "varuna parinda";
+
+//    var tag = this.createTag('test');
+//    buddy.tag = tag;
+
+    dump(buddy._buddy.contact.getTags());
+    dump('removing...');
+//    dump(buddy._buddy.preferredAccountBuddy);
+    dump('id = ' + buddy._buddy.preferredAccountBuddy.account.numericId);
+    dump('id = ' + this.numericId);
+//    buddy.remove();
+  },
+
+  onMessageStanza: function(stanza) {
+    if(stanza.getChildren('body').length > 0)
+     this.handleMessage(stanza.getChildren('body')[0].innerXML());
   },
 
   handleMessage: function(aRawMessage) {
@@ -143,16 +166,36 @@ Account.prototype = {
                      .createTag(aTagName);
   },
 
-  addBuddy: function(aTagName, aName) {
-    var tag = this.createTag(aTagName);
-    var buddy = new AccountBuddy(this, null, tag, aName);
-//    this._buddies[aName] = buddy;
-
-    Components.classes["@instantbird.org/purple/contacts-service;1"]
+  getBuddy: function(normalizedName) {
+    return Components.classes["@instantbird.org/purple/contacts-service;1"]
               .getService(Ci.imIContactsService)
-              .accountBuddyAdded(buddy);
+              .getBuddyByNameAndProtocol(normalizedName, this.protocol);
   },
- 
+
+  addBuddy: function(aTagName, aName) {
+    var b = this.getBuddy(normalize(aName), this.protocol);
+    var buddy;
+    dump(b);
+    if(b) {
+      dump(b.contact.getTags());
+      var tag = this.createTag(aTagName);
+      buddy = new AccountBuddy(this, null, tag, aName);
+      Components.classes["@instantbird.org/purple/contacts-service;1"]
+                .getService(Ci.imIContactsService)
+                .accountBuddyAdded(buddy);
+    } else {
+      var tag = this.createTag(aTagName);
+      buddy = new AccountBuddy(this, null, tag, aName);
+
+      Components.classes["@instantbird.org/purple/contacts-service;1"]
+                .getService(Ci.imIContactsService)
+                .accountBuddyAdded(buddy);
+    }
+
+    buddy.setStatus(Ci.imIStatusInfo.STATUS_AVAILABLE, 'wowzaaa', 10);
+    this._buddies[normalize(aName)] = buddy;
+  },
+
   onRoster: function(name, stanza) {
     dump('roster: ' + stanza.getXML());
 
@@ -168,7 +211,7 @@ Account.prototype = {
             name = items[i].attributes['jid'];
 
           setTimeout(function() {
-            self.addBuddy('friend', name);
+            self.addBuddy('friends', name);
           }, 0);
         }
       }

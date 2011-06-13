@@ -40,11 +40,14 @@ var EXPORTED_SYMBOLS = ["async",
                         "b64",
                         "MD5",
                         "parseJID",
+                        "normalize",
                         "digestMD5"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imServices.jsm");
+
+function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
 function parseJID(jid) {
   var res = {};
