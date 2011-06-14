@@ -111,19 +111,15 @@ Account.prototype = {
     from = parseJID(from).jid;
     dump(from);
     var buddy = this._buddies[normalize(from)];
+    if(!buddy) {
+      dump('buddy not present: ' + from);
+      return;
+    }
+
+    var p = Stanza.parsePresence(stanza);
     dump(buddy._buddy.id);
-    buddy.setStatus(Ci.imIStatusInfo.STATUS_AVAILABLE, 'wowzaaa', 10);
-    buddy.serverAlias = "varuna parinda";
-
-//    var tag = this.createTag('test');
-//    buddy.tag = tag;
-
-    dump(buddy._buddy.contact.getTags());
-    dump('removing...');
-//    dump(buddy._buddy.preferredAccountBuddy);
-    dump('id = ' + buddy._buddy.preferredAccountBuddy.account.numericId);
-    dump('id = ' + this.numericId);
-//    buddy.remove();
+    buddy.setStatus(p.show, p.status);
+//    buddy.serverAlias = "varuna parinda";
   },
 
   onMessageStanza: function(stanza) {
@@ -179,45 +175,37 @@ Account.prototype = {
     return buddy;
   },
 
-  _addBuddy: function(aTagName, aName) {
-    if(this._buddies[normalize(aName)])
+  _addBuddy: function(aTagName, aName, aAlias) {
+    if(this._buddies[normalize(aName)]) {
+      dump('locally present');
       return;
+    }
+    var self = this;
 
-    var b = this.getBuddy(normalize(aName), this.protocol);
-    var buddy;
-    var tag = this.createTag(aTagName);
-    dump(b);
-    if(b) {
-      buddy = new AccountBuddy(this, b, tag);
-    } else {
-      buddy = new AccountBuddy(this, null, tag, aName);
+    setTimeout(function() {
+      var tag = self.createTag(aTagName);
+      var buddy = new AccountBuddy(self, null, tag, aName);
 
       Components.classes["@instantbird.org/purple/contacts-service;1"]
                 .getService(Ci.imIContactsService)
                 .accountBuddyAdded(buddy);
-    }
 
-    buddy.setStatus(Ci.imIStatusInfo.STATUS_AVAILABLE, 'wowzaaa', 10);
-    this._buddies[normalize(aName)] = buddy;
+      if(aAlias)
+        buddy.serverAlias = aAlias;
+      self._buddies[normalize(aName)] = buddy;
+    }, 0);
   },
 
   onRoster: function(name, stanza) {
     dump('roster: ' + stanza.getXML());
-
-    let self = this;
 
     var q = stanza.getChildren('query');
     for(var i = 0; i < q.length; ++i) {
       if(q[i].uri == $NS.roster) {
         var items = q[i].getChildren('item');
         for(var j = 0; j < items.length; ++j) {
-          var name = items[i].attributes['name'];
-          if(!name)
-            name = items[i].attributes['jid'];
-
-          setTimeout(function() {
-            self._addBuddy('friends', name);
-          }, 0);
+          dump(items[j].attributes['jid']);
+          this._addBuddy('friends', items[j].attributes['jid'], items[j].attributes['name']);
         }
       }
     }

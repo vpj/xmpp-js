@@ -220,7 +220,7 @@ function createParser(aListener) {
       if(!this._node) {
       }
       // TODO:Should <stream:stream> be ignored? Otherwise the whole stream will be kept in memory
-      aListener.log('start: ' + qName);
+//      aListener.log('start: ' + qName);
 
       var node = new XMLNode(this._node, uri, localName, qName, attributes);
       if(this._node) {
@@ -232,7 +232,7 @@ function createParser(aListener) {
 
     characters: function(value) {
       if(!this._node) {
-        aListener.log('char: ' + qName);
+//        aListener.log('char: ' + qName);
         return;
       }
 
@@ -241,7 +241,7 @@ function createParser(aListener) {
 
     endElement: function(uri, localName, qName) {
       if(!this._node) {
-        aListener.log('end: ' + qName);
+//        aListener.log('end: ' + qName);
         return;
       }
 

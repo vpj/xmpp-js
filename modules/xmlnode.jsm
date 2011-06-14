@@ -106,6 +106,33 @@ const Stanza = {
     return Stanza.node('presence', null, attr, data);
   },
 
+  parsePresence: function(stanza) {
+    var p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
+             status: null};
+    var show = stanza.getChildren('show');
+    if(show.length > 0) {
+      show = show[0].innerXML();
+      dump(show);
+      if(show == 'away')
+        p.show = Ci.imIStatusInfo.STATUS_AWAY;
+      else if(show == 'chat')
+        p.show = Ci.imIStatusInfo.STATUS_AVAILABLE;
+      else if(show == 'dnd')
+        p.show = Ci.imIStatusInfo.STATUS_UNAVAILABLE;
+      else if(show == 'xa')
+        p.show = Ci.imIStatusInfo.STATUS_IDLE;
+    }
+
+    var status = stanza.getChildren('status');
+    if(status.length > 0) {
+      status = status[0].innerXML();
+      dump(status);
+      p.status = status;
+    }
+
+    return p;
+  },
+
   iq: function(type, id, to, data) {
     var n = new XMLNode(null, null, 'iq', 'iq', null)
     if(id)
