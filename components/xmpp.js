@@ -172,19 +172,24 @@ Account.prototype = {
               .getBuddyByNameAndProtocol(normalizedName, this.protocol);
   },
 
-  addBuddy: function(aTagName, aName) {
+  loadBuddy: function(aBuddy, aTag) {
+    var buddy = new AccountBuddy(this, aBuddy, aTag);
+    this._buddies[buddy.normalizedName] = buddy;
+    dump('loadBuddy ' + buddy.normalizedName);
+    return buddy;
+  },
+
+  _addBuddy: function(aTagName, aName) {
+    if(this._buddies[normalize(aName)])
+      return;
+
     var b = this.getBuddy(normalize(aName), this.protocol);
     var buddy;
+    var tag = this.createTag(aTagName);
     dump(b);
     if(b) {
-      dump(b.contact.getTags());
-      var tag = this.createTag(aTagName);
-      buddy = new AccountBuddy(this, null, tag, aName);
-      Components.classes["@instantbird.org/purple/contacts-service;1"]
-                .getService(Ci.imIContactsService)
-                .accountBuddyAdded(buddy);
+      buddy = new AccountBuddy(this, b, tag);
     } else {
-      var tag = this.createTag(aTagName);
       buddy = new AccountBuddy(this, null, tag, aName);
 
       Components.classes["@instantbird.org/purple/contacts-service;1"]
@@ -211,7 +216,7 @@ Account.prototype = {
             name = items[i].attributes['jid'];
 
           setTimeout(function() {
-            self.addBuddy('friends', name);
+            self._addBuddy('friends', name);
           }, 0);
         }
       }
