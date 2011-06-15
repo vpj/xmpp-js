@@ -133,6 +133,26 @@ const Stanza = {
     return p;
   },
 
+  message: function(to, attr, data) {
+    if(!attr)
+      attr = {};
+
+    attr['to'] = to;
+
+    return Stanza.node('message', null, attr, data);
+  },
+
+  parseMessage: function(stanza) {
+    var m = {from: null,
+             body: ''};
+    m.from = parseJID(stanza.attributes['from']);
+    var b = stanza.getChildren('body');
+    if(b.length > 0)
+      m.body = b[0].innerXML();
+
+    return m;
+  },
+
   iq: function(type, id, to, data) {
     var n = new XMLNode(null, null, 'iq', 'iq', null)
     if(id)

@@ -51,6 +51,9 @@ function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
 function parseJID(jid) {
   var res = {};
+  if(!jid)
+    return null;
+
   var v = jid.split('/');
   if(v.length == 1)
     res.resource = "";

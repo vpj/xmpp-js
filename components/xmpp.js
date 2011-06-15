@@ -43,30 +43,20 @@ Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-session.jsm");
 
-function Conversation(aAccount)
+function Conversation(aAccount, aBuddy)
 {
-  this._init(aAccount);
+  this._init(aAccount, aBuddy.displayName);
+  this._buddy = aBuddy;
 }
 Conversation.prototype = {
   sendMsg: function (aMsg) {
-    if (this._disconnected) {
-      this.writeMessage("xmpp", "This message could not be sent because the conversation is no longer active: " + aMsg, {system: true, error: true});
-      return;
-    }
-
-    this.account.sendMessage(aMsg);
+    this.account.sendMessage(this._buddy.userName, aMsg);
     this.writeMessage("You", aMsg, {outgoing: true});
   },
-  _disconnected: false,
-  _setDisconnected: function() {
-    this._disconnected = true;
-  },
-  close: function() {
-    if (!this._disconnected)
-      this.account.disconnect(true);
-  },
 
-  get name() "Test Console"
+  incomingMessage: function(aMsg) {
+    this.writeMessage('recvadsf', aMsg, {incoming: true});
+  }
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
 
@@ -74,7 +64,18 @@ Conversation.prototype.__proto__ = GenericConvIMPrototype;
 function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
 }
-AccountBuddy.prototype = GenericAccountBuddyPrototype;
+
+AccountBuddy.prototype = {
+  __proto__: GenericAccountBuddyPrototype,
+
+  getTooltipInfo: function() {
+    return this.displayName + ": " + this.statusText;
+  },
+
+  createConversation: function() {
+    this._account.createConversation(this.normalizedName);
+  }
+};
 
 function Account(aProtoInstance, aKey, aName)
 {
@@ -82,7 +83,7 @@ function Account(aProtoInstance, aKey, aName)
 }
 
 Account.prototype = {
-  _conv: null,
+  _conv: {},
   _connection: null,
   _buddies: {},
 
@@ -107,7 +108,6 @@ Account.prototype = {
 
   onPresenceStanza: function(stanza) {
     var from = stanza.attributes['from'];
-    // TODO: exceptions
     from = parseJID(from).jid;
     dump(from);
     var buddy = this._buddies[normalize(from)];
@@ -119,41 +119,45 @@ Account.prototype = {
     var p = Stanza.parsePresence(stanza);
     dump(buddy._buddy.id);
     buddy.setStatus(p.show, p.status);
-//    buddy.serverAlias = "varuna parinda";
   },
 
   onMessageStanza: function(stanza) {
-    if(stanza.getChildren('body').length > 0)
-     this.handleMessage(stanza.getChildren('body')[0].innerXML());
+    var m = Stanza.parseMessage(stanza);
+    var norm = normalize(m.from.jid);
+    if(!this.createConversation(norm))
+      return;
+
+    this._conv[norm].incomingMessage(m.body);
   },
 
-  handleMessage: function(aRawMessage) {
-    this._conv.writeMessage('recv', aRawMessage, {incoming: true});
+  sendMessage: function(aTo, aMsg) {
+    var s = Stanza.message(aTo, null,
+        Stanza.node('body', null, {}, aMsg));
+
+    this._connection.sendStanza(s);
   },
 
   _handleCertProblem: function(socketInfo, status, targetSite) {
   },
 
-  sendMessage: function(aMsg) {
-   aMsg = aMsg.replace(/&lt;/g, '<')
-              .replace(/&gt;/g, '>')
-              .replace(/<br\/>/g, '');
-
-//   this._connection.send('<message to="vpjayasiri@gmail.com" xml:lang="en"><body>' +
-//   aMsg + '</body></message>');
-   this._connection.send(aMsg);
-  },
-
   onConnection: function() {
-    let self = this;
-    setTimeout(function() {
-     self._conv = new Conversation(self);
-     self._conv.writeMessage("xmpp", "You're connected to the server", {system: true});
-    }, 0);
     var s = Stanza.iq('get', null, null,
         Stanza.node('query', $NS.roster, {}, []));
 
     this._connection.sendStanza(s, this.onRoster, this);
+  },
+
+  createConversation: function(aNormalizedName) {
+    if(!this._buddies[aNormalizedName]) {
+      dump('No buddy: ' + aNormalizedName);
+      return false;
+    }
+
+    if(!this._conv[aNormalizedName]) {
+      this._conv[aNormalizedName] = new Conversation(this, this._buddies[aNormalizedName]);
+    }
+
+    return true;
   },
 
   createTag: function(aTagName) {
@@ -162,7 +166,7 @@ Account.prototype = {
                      .createTag(aTagName);
   },
 
-  getBuddy: function(normalizedName) {
+  _getBuddy: function(normalizedName) {
     return Components.classes["@instantbird.org/purple/contacts-service;1"]
               .getService(Ci.imIContactsService)
               .getBuddyByNameAndProtocol(normalizedName, this.protocol);
