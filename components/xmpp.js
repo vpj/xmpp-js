@@ -80,6 +80,15 @@ AccountBuddy.prototype = {
 function Account(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
+  //dump(this.getString("password"));
+  //var obj;
+  //var c = this.prefs.getChildList("");
+//  dump('id = ' + this.id + '\n');
+  this._jid = null;
+  this._password = null;
+  this._server = null;
+  this._port = null;
+  this._security = [];
 }
 
 Account.prototype = {
@@ -91,10 +100,23 @@ Account.prototype = {
     this.base.connecting();
     dump("connecting");
 
+    this._jid = this.name;
+    this._JID = parseJID(this._jid);
+    this._password = this.password;
+    this._server = this.getString('server');
+    this._port = this.getInt('port');
+    if(this.getBool('ssl')) {
+      this._security = ['ssl'];
+    }
+
+    dump('server= ' + this._server + '\n');
+    dump('port= ' + this._port + '\n');
+
     this._connection =
 //        new XMPPSession("chat.facebook.com", 5222, [],
-        new XMPPSession("talk.google.com", 443, ["ssl"],
-        'bluewoody00', 'gmail.com', 'gsoc2011', this);
+        new XMPPSession(this._server, this._port, this._security,
+        this._JID.node, this._JID.domain, this._password,
+        this);
 //        new XMPPSession("talk.google.com", 5222, ["starttls"],
 //        'bluewoody00', 'gmail.com', 'gsoc2011', this);
     this._connection.connect();
@@ -240,12 +262,25 @@ Account.prototype.__proto__ = GenericAccountPrototype;
 
 function XMPPProtocol() {
 }
+
 XMPPProtocol.prototype = {
   get name() "xmpp-js",
-  get noPassword() true,
+  get noPassword() false,
   getAccount: function(aKey, aName) new Account(this, aKey, aName),
   classID: Components.ID("{c3eb26eb-eaa2-441f-a695-9512199bdbed}"),
+/*
+  usernameSplits: [
+    {label: "Server", separator: "@", defaultValue: "irc.freenode.com",
+     reverse: true}
+  ],
+*/
+  options: {
+    "server": {label: "Server", default: "talk.google.com"},
+    "port": {label: "Port", default: 443},
+    "ssl": {label: "Use SSL", default: true}
+  }
 };
+
 XMPPProtocol.prototype.__proto__ = GenericProtocolPrototype;
 
 const NSGetFactory = XPCOMUtils.generateNSGetFactory([XMPPProtocol]);

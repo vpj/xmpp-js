@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var EXPORTED_SYMBOLS = ["async",
-                        "dump",
+                        //"dump",
                         "dumpJSON",
                         "b64",
                         "MD5",
