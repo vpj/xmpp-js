@@ -68,8 +68,11 @@ function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
 AccountBuddy.prototype = {
   __proto__: GenericAccountBuddyPrototype,
 
+
   getTooltipInfo: function() {
-    return this.displayName + ": " + this.statusText;
+    /* Should return nsSimpleEnumerator with objects implementing interface purpleTooltipInfo
+     * Ref: https://hg.instantbird.org/instantbird/file/64d40cfcd9d0/mozilla/instantbird/base/content/instantbird/buddy.xml */
+    return null;
   },
 
   createConversation: function() {
@@ -80,10 +83,6 @@ AccountBuddy.prototype = {
 function Account(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
-  //dump(this.getString("password"));
-  //var obj;
-  //var c = this.prefs.getChildList("");
-//  dump('id = ' + this.id + '\n');
   this._jid = null;
   this._password = null;
   this._server = null;

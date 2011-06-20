@@ -145,6 +145,7 @@ nsSimpleEnumerator.prototype = {
     if (!this.hasMoreElements())
       throw Cr.NS_ERROR_NOT_AVAILABLE;
 
+    dump('getNext!\n');
     return this._items[this._nextIndex++];
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator])
@@ -238,11 +239,18 @@ const GenericAccountPrototype = {
     this._base.init(aKey, aName, aProtoInstance);
   },
 
+  /* Override this method to add a new buddy on the server
+   * This method is called when the user adds a new buddy
+   */
   addBuddy: function(aTag, aName) {
     Components.classes["@instantbird.org/purple/contacts-service;1"]
               .getService(Ci.imIContactsService)
               .accountBuddyAdded(new AccountBuddy(this, null, aTag, aName));
   },
+
+  /* Override this method to keep track of buddies
+   * This method is called at the startup for each of the buddies in the local buddy list
+   */
   loadBuddy: function(aBuddy, aTag) {
    try {
      return new AccountBuddy(this, aBuddy, aTag) ;
@@ -251,6 +259,7 @@ const GenericAccountPrototype = {
      return null;
    }
   },
+
   getChatRoomFields: function() {
     if (!this.chatRoomFields)
       return EmptyEnumerator;
