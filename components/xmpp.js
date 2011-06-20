@@ -51,6 +51,7 @@ function Conversation(aAccount, aBuddy)
   this._name = aBuddy.contactDisplayName;
   this._observers = [];
   this._opened = false;
+  Services.conversations.addConversation(this);
 }
 
 Conversation.prototype = {
@@ -63,18 +64,10 @@ Conversation.prototype = {
     this.writeMessage(this.buddy.contactDisplayName, aMsg, {incoming: true});
   },
 
-  open: function() {
-    if(!this._opened)
-      Services.conversations.addConversation(this);
-    this._opened = true;
-  },
-
   close: function() {
-    if(this._opened) {
-      Services.obs.notifyObservers(this, "closing-conversation", null);
-      Services.conversations.removeConversation(this);
-    }
-    this._opened = false;
+    Services.obs.notifyObservers(this, "closing-conversation", null);
+    Services.conversations.removeConversation(this);
+    this.account.removeConversation(this.buddy.normalizedName);
   },
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
@@ -200,8 +193,11 @@ Account.prototype = {
       this._conv[aNormalizedName] = new Conversation(this, this._buddies[aNormalizedName]);
     }
 
-    this._conv[aNormalizedName].open();
     return this._conv[aNormalizedName];
+  },
+
+  removeConversation: function(aNormalizedName) {
+    this._conv[aNormalizedName] = null;
   },
 
   createTag: function(aTagName) {
