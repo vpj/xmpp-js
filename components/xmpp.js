@@ -45,17 +45,17 @@ Cu.import("resource://xmpp-js/xmpp-session.jsm");
 
 function Conversation(aAccount, aBuddy)
 {
-  this._init(aAccount, aBuddy.displayName);
-  this._buddy = aBuddy;
+  this._init(aAccount, aBuddy.contactDisplayName);
+  this.buddy = aBuddy;
 }
 Conversation.prototype = {
   sendMsg: function (aMsg) {
-    this.account.sendMessage(this._buddy.userName, aMsg);
+    this.account.sendMessage(this.buddy.userName, aMsg);
     this.writeMessage("You", aMsg, {outgoing: true});
   },
 
   incomingMessage: function(aMsg) {
-    this.writeMessage('recvadsf', aMsg, {incoming: true});
+    this.writeMessage(this.buddy.contactDisplayName, aMsg, {incoming: true});
   }
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
@@ -74,6 +74,8 @@ AccountBuddy.prototype = {
      * Ref: https://hg.instantbird.org/instantbird/file/64d40cfcd9d0/mozilla/instantbird/base/content/instantbird/buddy.xml */
     return null;
   },
+
+  get contactDisplayName() this.buddy.contact.displayName || this.displayName,
 
   createConversation: function() {
     this._account.createConversation(this.normalizedName);
