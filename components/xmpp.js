@@ -42,12 +42,17 @@ Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-session.jsm");
+Cu.import("resource:///modules/imServices.jsm");
 
 function Conversation(aAccount, aBuddy)
 {
-  this._init(aAccount, aBuddy.contactDisplayName);
   this.buddy = aBuddy;
+  this.account = aAccount;
+  this._name = aBuddy.contactDisplayName;
+  this._observers = [];
+  this._opened = false;
 }
+
 Conversation.prototype = {
   sendMsg: function (aMsg) {
     this.account.sendMessage(this.buddy.userName, aMsg);
@@ -56,7 +61,21 @@ Conversation.prototype = {
 
   incomingMessage: function(aMsg) {
     this.writeMessage(this.buddy.contactDisplayName, aMsg, {incoming: true});
-  }
+  },
+
+  open: function() {
+    if(!this._opened)
+      Services.conversations.addConversation(this);
+    this._opened = true;
+  },
+
+  close: function() {
+    if(this._opened) {
+      Services.obs.notifyObservers(this, "closing-conversation", null);
+      Services.conversations.removeConversation(this);
+    }
+    this._opened = false;
+  },
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
 
@@ -78,7 +97,8 @@ AccountBuddy.prototype = {
   get contactDisplayName() this.buddy.contact.displayName || this.displayName,
 
   createConversation: function() {
-    this._account.createConversation(this.normalizedName);
+    dump('create Conversation');
+    return this._account.createConversation(this.normalizedName);
   }
 };
 
@@ -173,14 +193,15 @@ Account.prototype = {
   createConversation: function(aNormalizedName) {
     if(!this._buddies[aNormalizedName]) {
       dump('No buddy: ' + aNormalizedName);
-      return false;
+      return null;
     }
 
     if(!this._conv[aNormalizedName]) {
       this._conv[aNormalizedName] = new Conversation(this, this._buddies[aNormalizedName]);
     }
 
-    return true;
+    this._conv[aNormalizedName].open();
+    return this._conv[aNormalizedName];
   },
 
   createTag: function(aTagName) {
