@@ -103,6 +103,8 @@ function Account(aProtoInstance, aKey, aName)
   this._server = null;
   this._port = null;
   this._security = [];
+
+  Services.obs.addObserver(this, 'status-changed', false);
 }
 
 Account.prototype = {
@@ -137,9 +139,31 @@ Account.prototype = {
   },
 
   onXmppStanza: function(name, stanza) {
-/*    var s = stanza.convertToString();
-    s = s.replace('<', '&lt;').replace('>', '&gt;');
-    this._conv.writeMessage('recv', s, {system: true});*/
+  },
+
+  observe: function(aSubject, aTopic, aMsg) {
+    this.statusChanged(aSubject.currentStatusType, aSubject.currentStatusMessage);
+  },
+
+  statusChanged: function(aStatusType, aMsg) {
+    debug('statusChanged');
+    var s;
+
+    aMsg = aMsg || "";
+    if(aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
+      s = "chat";
+    } else if(aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
+      s = "dnd";
+    } else if(aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
+      s = "away";
+    } else if(aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+      //TODO: disconnect
+      s = "xa";
+    }
+    var s = Stanza.presence({'xml:lang': 'en'},
+         [Stanza.node('show', null, null, s),
+          Stanza.node('status', null, null, aMsg)]);
+    this._connection.sendStanza(s);
   },
 
   onPresenceStanza: function(stanza) {
