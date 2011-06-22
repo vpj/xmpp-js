@@ -30,7 +30,7 @@ XMPPSocket.prototype = {
   connectTimeout: 30000,
   readWriteTimeout: 30000,
   log: function(aString) {
-    dump("socket" + " " + aString);
+    debug("socket: " + aString);
   }
 };
 
@@ -175,7 +175,7 @@ XMPPConnection.prototype = {
   },
 
   log: function(aString) {
-    dump(aString);
+    debug("connection: " + aString);
   },
 
   // nsITransportEventSink

@@ -145,7 +145,6 @@ nsSimpleEnumerator.prototype = {
     if (!this.hasMoreElements())
       throw Cr.NS_ERROR_NOT_AVAILABLE;
 
-    dump('getNext!\n');
     return this._items[this._nextIndex++];
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator])

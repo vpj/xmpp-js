@@ -35,8 +35,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 var EXPORTED_SYMBOLS = ["async",
-                        //"dump",
-                        "dumpJSON",
+                        "log",
+                        "debug",
+                        "debugJSON",
                         "b64",
                         "MD5",
                         "parseJID",
@@ -67,7 +68,7 @@ function parseJID(jid) {
   v = v.length > 1 ? v[1] : v[0]
   res.domain = v.split('/')[0];
 
-  dumpJSON(res);
+  debugJSON(res);
   return res;
 }
 
@@ -79,7 +80,12 @@ function async(fn) {
                         Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
-function dump(str) {
+function debug(str) {
+  dump(str);
+  dump('\n');
+}
+
+function log(str) {
   if(typeof(str) == 'undefined' || !str)
     str == "null";
 
@@ -105,8 +111,8 @@ function getJSON(obj) {
   return res;
 }
 
-function dumpJSON(obj) {
-  dump(getJSON(obj));
+function debugJSON(obj) {
+  debug(getJSON(obj));
 }
 
 function utf8_encode(string) {

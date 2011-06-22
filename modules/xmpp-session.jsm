@@ -77,7 +77,7 @@ XMPPSession.prototype = {
   },
 
   log: function(aString) {
-    dump(aString);
+    debug("session: " + aString);
   },
 
   setState: function(state) {
@@ -104,7 +104,7 @@ XMPPSession.prototype = {
         }
 
         var mechs = this._getMechanisms(stanza);
-        dump(mechs);
+        this.log(mechs);
         for(var i = 0; i < mechs.length; ++i) {
           if(this._authMechs[mechs[i]]) {
             // TODO: Parameters
@@ -151,8 +151,8 @@ XMPPSession.prototype = {
 
       case STATE.auth_bind:
         var jid = stanza.getElement(['iq', 'bind', 'jid']);
-        dump("jid = " + jid.innerXML());
-        dumpJSON(['asdf', 10, 12, 'asdfas']);
+        this.log("jid = " + jid.innerXML());
+        debugJSON(['asdf', 10, 12, 'asdfas']);
         this._fullJID = jid.innerXML();
         this._JID = parseJID(this._fullJID);
         this._resource = this._JID.resource;

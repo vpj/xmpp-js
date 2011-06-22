@@ -50,8 +50,6 @@ DigestMD5Auth.prototype = {
     var reg = /"|'/g;
     var result = {};
 
-    dump(list);
-
     for(var i = 0; i < list.length; ++i) {
       var e = list[i].split('=');
         // TODO: Exception
@@ -94,7 +92,6 @@ DigestMD5Auth.prototype = {
         'response=' + this._quote(response) + ',' +
         'charset=' + this._quote(charset);
 
-    dump(content);
     var encoded = b64.encode(content);
 
     this._step++;

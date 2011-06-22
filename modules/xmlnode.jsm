@@ -112,7 +112,6 @@ const Stanza = {
     var show = stanza.getChildren('show');
     if(show.length > 0) {
       show = show[0].innerXML();
-      dump(show);
       if(show == 'away')
         p.show = Ci.imIStatusInfo.STATUS_AWAY;
       else if(show == 'chat')
@@ -126,7 +125,6 @@ const Stanza = {
     var status = stanza.getChildren('status');
     if(status.length > 0) {
       status = status[0].innerXML();
-      dump(status);
       p.status = status;
     }
 

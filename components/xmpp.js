@@ -90,7 +90,7 @@ AccountBuddy.prototype = {
   get contactDisplayName() this.buddy.contact.displayName || this.displayName,
 
   createConversation: function() {
-    dump('create Conversation');
+    debug('create Conversation');
     return this._account.createConversation(this.normalizedName);
   }
 };
@@ -112,7 +112,7 @@ Account.prototype = {
 
   connect: function() {
     this.base.connecting();
-    dump("connecting");
+    debug("connecting");
 
     this._jid = this.name;
     this._JID = parseJID(this._jid);
@@ -123,8 +123,8 @@ Account.prototype = {
       this._security = ['ssl'];
     }
 
-    dump('server= ' + this._server + '\n');
-    dump('port= ' + this._port + '\n');
+    debug('server= ' + this._server);
+    debug('port= ' + this._port);
 
     this._connection =
 //        new XMPPSession("chat.facebook.com", 5222, [],
@@ -145,15 +145,15 @@ Account.prototype = {
   onPresenceStanza: function(stanza) {
     var from = stanza.attributes['from'];
     from = parseJID(from).jid;
-    dump(from);
+    debug(from);
     var buddy = this._buddies[normalize(from)];
     if(!buddy) {
-      dump('buddy not present: ' + from);
+      debug('buddy not present: ' + from);
       return;
     }
 
     var p = Stanza.parsePresence(stanza);
-    dump(buddy._buddy.id);
+    debug(buddy._buddy.id);
     buddy.setStatus(p.show, p.status);
   },
 
@@ -177,6 +177,8 @@ Account.prototype = {
   },
 
   onConnection: function() {
+    this.base.connected();
+
     var s = Stanza.iq('get', null, null,
         Stanza.node('query', $NS.roster, {}, []));
 
@@ -185,7 +187,7 @@ Account.prototype = {
 
   createConversation: function(aNormalizedName) {
     if(!this._buddies[aNormalizedName]) {
-      dump('No buddy: ' + aNormalizedName);
+      debug('No buddy: ' + aNormalizedName);
       return null;
     }
 
@@ -215,13 +217,13 @@ Account.prototype = {
   loadBuddy: function(aBuddy, aTag) {
     var buddy = new AccountBuddy(this, aBuddy, aTag);
     this._buddies[buddy.normalizedName] = buddy;
-    dump('loadBuddy ' + buddy.normalizedName);
+    debug('loadBuddy ' + buddy.normalizedName);
     return buddy;
   },
 
   _addBuddy: function(aTagName, aName, aAlias) {
     if(this._buddies[normalize(aName)]) {
-      dump('locally present');
+      debug('locally present');
       return;
     }
     var self = this;
@@ -241,14 +243,14 @@ Account.prototype = {
   },
 
   onRoster: function(name, stanza) {
-    dump('roster: ' + stanza.getXML());
+    debug('roster: ' + stanza.getXML());
 
     var q = stanza.getChildren('query');
     for(var i = 0; i < q.length; ++i) {
       if(q[i].uri == $NS.roster) {
         var items = q[i].getChildren('item');
         for(var j = 0; j < items.length; ++j) {
-          dump(items[j].attributes['jid']);
+          debug(items[j].attributes['jid']);
           this._addBuddy('friends', items[j].attributes['jid'], items[j].attributes['name']);
         }
       }
