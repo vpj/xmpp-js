@@ -72,6 +72,11 @@ Conversation.prototype = {
 };
 Conversation.prototype.__proto__ = GenericConvIMPrototype;
 
+function TooltipInfo(aType, aLabel, aValue) {
+  this._init(aType, aLabel, aValue);
+}
+
+TooltipInfo.prototype.__proto__ = GenericTooltipInfo;
 
 function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
@@ -84,6 +89,7 @@ AccountBuddy.prototype = {
   getTooltipInfo: function() {
     /* Should return nsSimpleEnumerator with objects implementing interface purpleTooltipInfo
      * Ref: https://hg.instantbird.org/instantbird/file/64d40cfcd9d0/mozilla/instantbird/base/content/instantbird/buddy.xml */
+    return new nsSimpleEnumerator([new TooltipInfo('pair', 'name', 'vpj')]);
     return null;
   },
 
@@ -246,6 +252,10 @@ Account.prototype = {
   },
 
   _addBuddy: function(aTagName, aName, aAlias) {
+    var s = Stanza.iq('get', null, aName,
+        Stanza.node('vCard', 'vcard-temp', {}, []));
+    this._connection.sendStanza(s, this.onVCard, this);
+
     if(this._buddies[normalize(aName)]) {
       debug('locally present');
       return;
@@ -264,6 +274,20 @@ Account.prototype = {
         buddy.serverAlias = aAlias;
       self._buddies[normalize(aName)] = buddy;
     }, 0);
+  },
+
+  onVCard: function(name, stanza) {
+    var vCard = Stanza.parseVCard(stanza);
+    log('parsedVCard');
+    debugJSON(vCard);
+    if(!vCard)
+      return;
+
+    if(this._buddies[normalize(vCard.jid.jid)]) {
+      let b = this._buddies[normalize(vCard.jid.jid)];
+      if(vCard.fullname)
+        b.serverAlias = vCard.fullname;
+    }
   },
 
   onRoster: function(name, stanza) {

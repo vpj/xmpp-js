@@ -42,6 +42,7 @@ var EXPORTED_SYMBOLS = [
   "nsSimpleEnumerator",
   "EmptyEnumerator",
   "ClassInfo",
+  "GenericTooltipInfo",
   "GenericAccountPrototype",
   "GenericAccountBuddyPrototype",
   "GenericConvIMPrototype",
@@ -160,6 +161,26 @@ XPCOMUtils.defineLazyGetter(this, "AccountBase", function()
   Components.Constructor("@instantbird.org/purple/account;1",
                          "purpleIAccountBase")
 );
+
+const GenericTooltipInfo = {
+  __proto__: ClassInfo("purpleITooltipInfo", "generic tooltipinfo object"),
+
+  _init: function(type, label, value) {
+    if(type == 'pair')
+      this._type = this.pair;
+    else if(type == 'sectionHeader')
+      this._type = this.sectionHeader;
+    else
+      this._type = this.sectionBreak;
+
+    this._label = label;
+    this._value = value;
+  },
+
+  get type() this._type,
+  get label() this._label,
+  get value() this._value
+};
 
 const ForwardAccountPrototype = {
   __proto__: ClassInfo("purpleIAccount", "generic account object"),

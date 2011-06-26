@@ -131,6 +131,28 @@ const Stanza = {
     return p;
   },
 
+  parseVCard: function(stanza) {
+    var vCard = {jid: null, fullname: null};
+    debugJSON(stanza.attributes);
+    vCard.jid = parseJID(stanza.attributes['from']);
+    if(!vCard.jid)
+      return null;
+    debug('ATTRIBUTES************');
+    var v = stanza.getChildren('vCard');
+    if(v.length <= 0)
+      return null;
+    v = v[0];
+    for(var i = 0; i < v.children.length; ++i) {
+      var c = v.children[i];
+      if(c.type == 'node') {
+        if(c.localName == 'FN')
+          vCard.fullname = c.innerXML();
+      }
+    }
+
+    return vCard;
+  },
+
   message: function(to, attr, data) {
     if(!attr)
       attr = {};
