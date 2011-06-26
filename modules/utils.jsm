@@ -78,8 +78,9 @@ function parseJID(jid) {
 function saveIcon(jid, type, encoded) {
   var content = b64.decode(encoded);
   var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", jid + '.jpg']);
-  
-  file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
+ 
+  if(!file.exists())
+    file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
 
   var ostream = FileUtils.openSafeFileOutputStream(file);
   var stream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"].
