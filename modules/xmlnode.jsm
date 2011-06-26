@@ -132,12 +132,11 @@ const Stanza = {
   },
 
   parseVCard: function(stanza) {
-    var vCard = {jid: null, fullname: null};
+    var vCard = {jid: null, fullname: null, icon: null};
     debugJSON(stanza.attributes);
     vCard.jid = parseJID(stanza.attributes['from']);
     if(!vCard.jid)
       return null;
-    debug('ATTRIBUTES************');
     var v = stanza.getChildren('vCard');
     if(v.length <= 0)
       return null;
@@ -147,6 +146,12 @@ const Stanza = {
       if(c.type == 'node') {
         if(c.localName == 'FN')
           vCard.fullname = c.innerXML();
+        if(c.localName == 'PHOTO') {
+          var icon = saveIcon(vCard.jid.jid,
+                   c.getChildren('TYPE')[0].innerXML(),
+                   c.getChildren('BINVAL')[0].innerXML());
+          vCard.icon = icon;
+        }
       }
     }
 

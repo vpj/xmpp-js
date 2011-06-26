@@ -37,6 +37,7 @@
 var EXPORTED_SYMBOLS = ["async",
                         "log",
                         "debug",
+                        "saveIcon",
                         "debugJSON",
                         "b64",
                         "MD5",
@@ -47,6 +48,8 @@ var EXPORTED_SYMBOLS = ["async",
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imServices.jsm");
+Cu.import("resource://gre/modules/FileUtils.jsm");
+
 
 function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
@@ -70,6 +73,29 @@ function parseJID(jid) {
 
   debugJSON(res);
   return res;
+}
+
+function saveIcon(jid, type, encoded) {
+  var content = b64.decode(encoded);
+  var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", jid + '.jpg']);
+  
+  file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
+
+  var ostream = FileUtils.openSafeFileOutputStream(file);
+  var stream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"].
+             createInstance(Components.interfaces.nsIFileOutputStream);
+  stream.init(file, 0x04 | 0x08 | 0x20, 0600, 0); // readwrite, create, truncate
+  stream.write(content, content.length);
+  if (stream instanceof Components.interfaces.nsISafeOutputStream) {
+    stream.finish();
+  } else {
+    stream.close();
+  }
+  var ios = Cc["@mozilla.org/network/io-service;1"].
+                       getService(Components.interfaces.nsIIOService);
+
+  var URI = ios.newFileURI(file);
+  return URI.spec;
 }
 
 function async(fn) {

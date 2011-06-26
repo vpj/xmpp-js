@@ -277,8 +277,15 @@ Account.prototype = {
   },
 
   onVCard: function(name, stanza) {
-    var vCard = Stanza.parseVCard(stanza);
-    log('parsedVCard');
+    debug('parseVCard');
+    var vCard = null;
+    try {
+      vCard = Stanza.parseVCard(stanza);
+    } catch(e) {
+      debug('EEEEEEEEEEEEERRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRR');
+      debug(e);
+    }
+    debug('parsedVCard');
     debugJSON(vCard);
     if(!vCard)
       return;
@@ -287,6 +294,9 @@ Account.prototype = {
       let b = this._buddies[normalize(vCard.jid.jid)];
       if(vCard.fullname)
         b.serverAlias = vCard.fullname;
+      if(vCard.icon) {
+        b.buddyIconFilename = vCard.icon;
+      }
     }
   },
 

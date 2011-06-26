@@ -143,7 +143,12 @@ XMPPConnection.prototype = {
   onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
     /* No need to handle proxy stuff since it's handled by socket.jsm? */
     this.log("DataAvailable");
+    try {
     this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
+    } catch(e) {
+    debug('++++++++++++++++++++++++++++++++++++++error');
+    debug(e);
+    }
     //this.log(readInputStreamToString(aInputStream, aCount));
   },
 
