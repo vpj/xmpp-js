@@ -41,13 +41,13 @@ const CONNECTION_STATE = {
 /* XMPPSession will create the  XMPP connection to create sessions (authentication, etc) */
 /* This will create the connection, handle proxy, parse xml */
 
-/* Merge these two classes?*/
 function XMPPSocket(aListener) {
   this.onDataAvailable = aListener.onDataAvailable.bind(aListener);
-  this.onDataReceived = aListener.onDataReceived.bind(aListener);
   this.onConnection = aListener.onConnection.bind(aListener);
   this.onCertProblem = aListener.onCertProblem.bind(aListener);
   this.onConnectionReset = aListener.onConnectionReset.bind(aListener);
+  this.onConnectionTimedOut = aListener.onConnectionTimedOut.bind(aListener);
+  this.onTransportStatus = aListener.onTransportStatus.bind(aListener);
 }
 
 XMPPSocket.prototype = {
@@ -80,27 +80,30 @@ function XMPPConnection(aHost, aPort, aSecurity, aListener) {
 }
 
 XMPPConnection.prototype = {
+  /* Whether the connection supports starttls */
   get isStartTLS() this._isStartTLS,
 
+  /* Connect to the server */
   connect: function() {
     this.setState(CONNECTION_STATE.socket_connecting);
 
-    debug("SECURITY");
-    debug(this._security);
     this._socket = new XMPPSocket(this);
     this.reset();
     this._socket.connect(this._host, this._port, this._security, this._proxy);
   },
 
+  /* Send a message */
   send: function(aMsg) {
     this._socket.sendData(aMsg);
   },
 
+  /* Close connection */
   close: function() {
    this._socket.disconnect();
    this.setState(CONNECTION_STATE.disconnected);
   },
 
+  /* Reset connection */
   reset: function() {
     this._parser = createParser(this);
     this._parseReq = {
@@ -112,28 +115,59 @@ XMPPConnection.prototype = {
     this._parser.onStartRequest(this._parseReq, null);
   },
 
+  /* Start TLS */
   startTLS: function() {
     this._socket.startTLS();
   },
 
-  // Callbacks
+  /* XMPPSocket events */
+  /* When connection is established */
   onConnection: function() {
     this.setState(CONNECTION_STATE.connected);
   },
 
+  /* When there is a problem with certificates */
+  onCertProblem: function(socketInfo, status, targetSite) {
+    /* Open the add excetion dialog and reconnect
+      Should this be part of the socket.jsm since
+      all plugins using socket.jsm will need it? */
+    this._addCertificate();
+  },
+
+  /* When incoming data is available to be read */
+  onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
+    /* No need to handle proxy stuff since it's handled by socket.jsm? */
+    try {
+      this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
+    } catch(e) {
+      debug('++++++++++++++++++++++++++++++++++++++error');
+      debug(e);
+    }
+  },
+
+  onConnectionReset: function() {
+    this.log("ConnectionReset");
+    this.setState(CONNECTION_STATE.disconnected);
+  },
+
+  onConnectionTimedOut: function() {
+    this.log("ConnectionTimeout");
+  },
+
+  onTransportStatus: function(aTransport, aStatus, aProgress, aProgressmax) {
+   /* statues == COnNECTED_TO
+   is this when we should fire on connection? */
+  },
+
+  /* Private methods */
   setState: function(state) {
+    this._state = state;
     switch(state) {
       case CONNECTION_STATE.connected:
         this._listener.onConnection();
         break;
       default:
     }
-  },
-
-  onCertProblem: function(socketInfo, status, targetSite) {
-    /* Open the add excetion dialog and reconnect
-      Should this be part of the socket.jsm since all plugins using socket.jsm will need it? */
-    this._addCertificate();
   },
 
   _addCertificate: function() {
@@ -164,46 +198,23 @@ XMPPConnection.prototype = {
             '',
             'chrome,modal,centerscreen',
             args);
-      self.log('Window closed');
+      self.debug('Window closed');
     });
   },
 
-  // nsIStreamListener methods
-  onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
-    /* No need to handle proxy stuff since it's handled by socket.jsm? */
-    this.log("DataAvailable");
-    try {
-    this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
-    } catch(e) {
-    debug('++++++++++++++++++++++++++++++++++++++error');
-    debug(e);
-    }
-    //this.log(readInputStreamToString(aInputStream, aCount));
-  },
-
-  onConnectionReset: function() {
-    this.log("ConnectionReset");
-    this.setState(CONNECTION_STATE.disconnected);
-  },
-
-  onConnectionTimedOut: function() {
-    this.log("ConnectionTimeout");
-  },
-
-  onDataReceived: function(data) {
-    this.log(data);
-    this._listener.handleMessage(data);
-  },
-
+  /* Callbacks from parser */
+  /* A stanza received */
   onXmppStanza: function(name, stanza) {
-    this.log(stanza.convertToString());
+    this.debug(stanza.convertToString());
     this._listener.onXmppStanza(name, stanza);
   },
 
+  /* Stream started */
   onStartStream: function() {
     /* Set state?? */
   },
 
+  /* Stream ended */
   onEndStream: function() {
     /* Set state?? */
   },
@@ -212,11 +223,9 @@ XMPPConnection.prototype = {
     debug("connection: " + aString);
   },
 
-  // nsITransportEventSink
-  onTransportStatus: function(aTransport, aStatus, aProgress, aProgressmax) {
-   /* statues == COnNECTED_TO
-   is this when we should fire on connection? */
-  }
+  debug: function(aString) {
+    debug("connection: " + aString);
+  },
 };
 
 function readInputStreamToString(stream, count) {
@@ -254,8 +263,6 @@ function createParser(aListener) {
       if(!this._node) {
       }
       // TODO:Should <stream:stream> be ignored? Otherwise the whole stream will be kept in memory
-//      aListener.log('start: ' + qName);
-
       var node = new XMLNode(this._node, uri, localName, qName, attributes);
       if(this._node) {
         this._node.addChild(node);
@@ -266,7 +273,7 @@ function createParser(aListener) {
 
     characters: function(value) {
       if(!this._node) {
-//        aListener.log('char: ' + qName);
+      // Error
         return;
       }
 
@@ -275,7 +282,7 @@ function createParser(aListener) {
 
     endElement: function(uri, localName, qName) {
       if(!this._node) {
-//        aListener.log('end: ' + qName);
+      // Error
         return;
       }
 
