@@ -149,6 +149,10 @@ const Stanza = {
         p.show = Ci.imIStatusInfo.STATUS_IDLE;
     }
 
+    if(stanza.attributes['type'] == 'unavailable') {
+      p.show = Ci.imIStatusInfo.STATUS_OFFLINE;
+    }
+
     var status = stanza.getChildren('status');
     if(status.length > 0) {
       status = status[0].innerXML();

@@ -105,21 +105,21 @@ function Account(aProtoInstance, aKey, aName)
   this._server = null;
   this._port = null;
   this._security = [];
+  /* A map of on going conversations */
+  this._conv = {},
+
+  /* XMPP Connection */
+  this._connection = null,
+
+  /* Map of buddies */
+  this._buddies = {},
+
 
   Services.obs.addObserver(this, 'status-changed', false);
 }
 
 Account.prototype = {
   __proto__: GenericAccountPrototype,
-
-  /* A map of on going conversations */
-  _conv: {},
-
-  /* XMPP Connection */
-  _connection: null,
-
-  /* Map of buddies */
-  _buddies: {},
 
   /* Events */
   observe: function(aSubject, aTopic, aMsg) {
@@ -150,6 +150,10 @@ Account.prototype = {
   
   /* Disconnect from the server */
   disconnect: function(aSilent) {
+    for(var b in this._buddies) {
+      this._buddies[b].setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
+    }
+
     this._connection.disconnect();
     this.gotDisconnected();
   },
