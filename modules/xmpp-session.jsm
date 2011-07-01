@@ -76,6 +76,14 @@ XMPPSession.prototype = {
     this._connection.connect();
   },
 
+  disconnect: function() {
+    if(this._state == STATE.session_started) {
+      this.send('</stream:stream>');
+    }
+    this._connection.close();
+    this.setState(STATE.disconnected);
+  },
+
   send: function(aMsg) {
     this._connection.send(aMsg);
   },
