@@ -48,8 +48,6 @@ const STATE = {
   connected: "connected"
 };
 
-// This will handle the authentication and start the connection
-
 const STREAM_HEADER = "<?xml version=\"1.0\"?><stream:stream to=\"#host#\" xmlns=\"jabber:client\" xmlns:stream=\"http://etherx.jabber.org/streams\"  version=\"1.0\">";
 
 function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListener) {
@@ -71,11 +69,13 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
 }
 
 XMPPSession.prototype = {
+  /* Connect to the server */
   connect: function() {
     this.setState(STATE.connecting);
     this._connection.connect();
   },
 
+  /* Disconnect from the server */
   disconnect: function() {
     if(this._state == STATE.session_started) {
       this.send('</stream:stream>');
@@ -84,10 +84,15 @@ XMPPSession.prototype = {
     this.setState(STATE.disconnected);
   },
 
+  /* Send a text message to the server */
   send: function(aMsg) {
     this._connection.send(aMsg);
   },
 
+  /* Send a stanza to the server.
+   * Can set a callback if required, which will be called
+   * when the server responds to the stanza with
+   * a stanza of the same id. */
   sendStanza: function(stanza, callback, obj) {
     stanza.attributes['id'] = this.id();
     if(callback)
@@ -96,35 +101,45 @@ XMPPSession.prototype = {
     return stanza.attributes.id;
   },
 
+  /* Gives an unique id */
   id: function() {
     this._stanzaId++;
     return this._stanzaId;
   },
 
-  onConnection: function() {
-    // Start the stream
-    this.setState(STATE.initializing_stream);
-    this.startStream();
-  },
-
+  /* Start the XMPP stream */
   startStream: function() {
     this.send(STREAM_HEADER.replace('#host#', this._domain));
   },
 
+  /* Log a message */
   log: function(aString) {
     debug("session: " + aString);
   },
 
-  setState: function(state) {
-    this._state = state;
-    this.log("state = " + state);
+  debug: function(aString) {
+    debug("session: " + aString);
   },
 
+  /* Set the session state */
+  setState: function(state) {
+    this._state = state;
+    this.debug("state = " + state);
+  },
+
+
+  /* XMPPConnection events */
+  /* The connection is established */
+  onConnection: function() {
+    this.setState(STATE.initializing_stream);
+    this.startStream();
+  },
+
+  /* When a Stanza is received */
   onXmppStanza: function(name, stanza) {
-    this.log("onStanza");
+    this.debug("onStanza");
     switch(this._state) {
       case STATE.initializing_stream:
-        //TODO: Check stanzastarttls
         var starttls = this._isStartTLS(stanza);
         if(this._connection.isStartTLS) {
           if(starttls == 'required' || starttls == 'optional') {
@@ -139,13 +154,11 @@ XMPPSession.prototype = {
         }
 
         var mechs = this._getMechanisms(stanza);
-        this.log(mechs);
+        this.debug(mechs);
         for(var i = 0; i < mechs.length; ++i) {
           if(this._authMechs[mechs[i]]) {
-            // TODO: Parameters
-            // TODO: parse the jabber id and get the username
             this._auth = new this._authMechs[mechs[i]](
-                this._jid, this._password, this._domain, 'jayasiri');
+                this._jid.node, this._password, this._domain);
             break;
           }
         }
@@ -186,7 +199,7 @@ XMPPSession.prototype = {
 
       case STATE.auth_bind:
         var jid = stanza.getElement(['iq', 'bind', 'jid']);
-        this.log("jid = " + jid.innerXML());
+        this.debug("jid = " + jid.innerXML());
         debugJSON(['asdf', 10, 12, 'asdfas']);
         this._fullJID = jid.innerXML();
         this._JID = parseJID(this._fullJID);
@@ -202,7 +215,6 @@ XMPPSession.prototype = {
         this._listener.onConnection();
         break;
 
-      // TODO: Efficient if the method was assigned
       case STATE.session_started:
         if(name == 'presence')
           this._listener.onPresenceStanza(stanza);
@@ -218,6 +230,8 @@ XMPPSession.prototype = {
     }
   },
 
+  /* Private methods */
+  /* Get supported authentication mechanisms */
   _getMechanisms: function(stanza) {
     if(stanza.localName != 'features')
       return [];
@@ -232,6 +246,7 @@ XMPPSession.prototype = {
     return res;
   },
 
+  /* Check is starttls is required or optional */
   _isStartTLS: function(stanza) {
     if(stanza.localName != 'features')
       return '';

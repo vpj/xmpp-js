@@ -32,11 +32,10 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 
-function PlainAuth(jid, password, domain, name) {
-  this._jid = jid;
+function PlainAuth(username, password, domain) {
+  this._username = username;
   this._password = password;
   this._domain = domain;
-  this._name = name;
 }
 
 PlainAuth.prototype = {
@@ -44,16 +43,15 @@ PlainAuth.prototype = {
     return {
       wait_results: true,
       send:  '<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" mechanism="PLAIN">'
-              + b64.encode('\0'+ this._jid + '\0' + this._password)
+              + b64.encode('\0'+ this._username + '\0' + this._password)
               + '</auth>'};
   }
 };
 
-function DigestMD5Auth(jid, password, domain, name) {
-  this._jid = jid;
+function DigestMD5Auth(username, password, domain) {
+  this._username = username;
   this._password = password;
   this._domain = domain;
-  this._name = name;
   this._step = 0;
 }
 
@@ -106,10 +104,10 @@ DigestMD5Auth.prototype = {
     if(host)
       digestUri += '/' + host;
 
-    var response = digestMD5(this._name, realm, this._password, nonce, cnonce, digestUri);
+    var response = digestMD5(this._username, realm, this._password, nonce, cnonce, digestUri);
 
     var content = 
-        'username=' + this._quote(this._name) + ',' +
+        'username=' + this._quote(this._username) + ',' +
         'realm=' + this._quote(realm) + ',' +
         'nonce=' + this._quote(nonce) + ',' +
         'cnonce=' + this._quote(cnonce) + ',' +

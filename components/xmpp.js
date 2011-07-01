@@ -142,7 +142,7 @@ Account.prototype = {
 
     this._connection =
         new XMPPSession(this._server, this._port, this._security,
-        this._JID.node, this._JID.domain, this._password,
+        this._JID, this._JID.domain, this._password,
         this);
 
     this._connection.connect();
@@ -210,7 +210,7 @@ Account.prototype = {
   /* Called when there is an error in the xmpp session */
   onError: function(aException) {
     this.gotDisconnected(this._base.ERROR_OTHER_ERROR, aException.toString());
-  }
+  },
 
   /* Callbacks for Query stanzas */
   /* When a vCard is recieved */
@@ -354,8 +354,6 @@ Account.prototype = {
           Stanza.node('status', null, null, aMsg)]);
     this._connection.sendStanza(s);
   },
-
-
 };
 
 function XMPPProtocol() {

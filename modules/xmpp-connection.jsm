@@ -85,6 +85,8 @@ XMPPConnection.prototype = {
   connect: function() {
     this.setState(CONNECTION_STATE.socket_connecting);
 
+    debug("SECURITY");
+    debug(this._security);
     this._socket = new XMPPSocket(this);
     this.reset();
     this._socket.connect(this._host, this._port, this._security, this._proxy);
