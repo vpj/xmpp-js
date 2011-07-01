@@ -62,7 +62,6 @@ function parseJID(jid) {
   v = v.length > 1 ? v[1] : v[0]
   res.domain = v.split('/')[0];
 
-  debugJSON(res);
   return res;
 }
 

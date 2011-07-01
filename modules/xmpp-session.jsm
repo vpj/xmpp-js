@@ -135,9 +135,15 @@ XMPPSession.prototype = {
     this.startStream();
   },
 
+  onDisconnected: function(error, exception) {
+    this.log('disconnected: ' + error);
+
+    if(exception)
+      Cu.reportError(exception);
+  },
+
   /* When a Stanza is received */
   onXmppStanza: function(name, stanza) {
-    this.debug("onStanza");
     switch(this._state) {
       case STATE.initializing_stream:
         var starttls = this._isStartTLS(stanza);
@@ -150,7 +156,7 @@ XMPPSession.prototype = {
           }
         }
         if(starttls == 'required' && !this._connection.isStartTLS) {
-          // TODO error
+          this._listener.onError('Starttls required but the connection does not support');
         }
 
         var mechs = this._getMechanisms(stanza);
@@ -164,11 +170,18 @@ XMPPSession.prototype = {
         }
 
         if(!this._auth) {
-        //TODO: fail
+          this._listener.onError('None of the authentication mechanisms are supported');
+          this.log(mechs);
+          return;
         }
 
       case STATE.auth_starting:
-        var res = this._auth.next(stanza);
+        try {
+          var res = this._auth.next(stanza);
+        } catch(e) {
+          this._listener.onError('Authentication failure: ' + e);
+        }
+
         if(res.send)
           this.send(res.send);
         if(res.wait_results == true)
@@ -200,7 +213,6 @@ XMPPSession.prototype = {
       case STATE.auth_bind:
         var jid = stanza.getElement(['iq', 'bind', 'jid']);
         this.debug("jid = " + jid.innerXML());
-        debugJSON(['asdf', 10, 12, 'asdfas']);
         this._fullJID = jid.innerXML();
         this._JID = parseJID(this._fullJID);
         this._resource = this._JID.resource;

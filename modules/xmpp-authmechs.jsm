@@ -32,6 +32,7 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 
+/* Handle PLAIN authorization mechanism */
 function PlainAuth(username, password, domain) {
   this._username = username;
   this._password = password;
@@ -48,6 +49,7 @@ PlainAuth.prototype = {
   }
 };
 
+/* Handles DIGEST-MD5 authorization mechanism */
 function DigestMD5Auth(username, password, domain) {
   this._username = username;
   this._password = password;
@@ -77,7 +79,10 @@ DigestMD5Auth.prototype = {
 
     for(var i = 0; i < list.length; ++i) {
       var e = list[i].split('=');
-        // TODO: Exception
+      if(e.length != 2) {
+        throw "Error decoding: " + list[i];
+      }
+
       result[e[0]] = e[1].replace(reg, '');
     }
 
@@ -89,7 +94,6 @@ DigestMD5Auth.prototype = {
   },
 
   _step_1: function(stanza) {
-    //TODO: check failure
     var text = stanza.innerXML();
     var data = this._decode(text);
     var cnonce = MD5.hexdigest(Math.random() * 1234567890),

@@ -147,14 +147,10 @@ Account.prototype = {
 
     this._connection.connect();
   },
-  
+
   /* Disconnect from the server */
   disconnect: function(aSilent) {
-    for(var b in this._buddies) {
-      this._buddies[b].setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
-    }
-
-    this._connection.disconnect();
+    this._disconnect();
     this.gotDisconnected();
   },
 
@@ -213,6 +209,8 @@ Account.prototype = {
 
   /* Called when there is an error in the xmpp session */
   onError: function(aException) {
+    Cu.reportError(aException);
+    this._disconnect();
     this.gotDisconnected(this._base.ERROR_OTHER_ERROR, aException.toString());
   },
 
@@ -226,7 +224,6 @@ Account.prototype = {
       debug(e);
     }
 
-    debugJSON(vCard);
     if(!vCard)
       return;
 
@@ -242,14 +239,11 @@ Account.prototype = {
 
   /* When the roster is received */
   onRoster: function(name, stanza) {
-    debug('roster: ' + stanza.getXML());
-
     var q = stanza.getChildren('query');
     for(var i = 0; i < q.length; ++i) {
       if(q[i].uri == $NS.roster) {
         var items = q[i].getChildren('item');
         for(var j = 0; j < items.length; ++j) {
-          debug(items[j].attributes['jid']);
           this._addBuddy('friends', items[j].attributes['jid'], items[j].attributes['name']);
         }
       }
@@ -298,6 +292,17 @@ Account.prototype = {
   },
 
   /* Private methods */
+
+  /* Disconnect from the server */
+  _disconnect: function() {
+    for(var b in this._buddies) {
+      this._buddies[b].setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
+    }
+
+    this._connection.disconnect();
+  },
+
+
   /* Create a tag - helper function */
   _createTag: function(aTagName) {
     return Components.classes["@instantbird.org/purple/tags-service;1"]

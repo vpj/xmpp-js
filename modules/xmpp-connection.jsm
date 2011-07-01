@@ -35,7 +35,9 @@ Cu.import("resource://xmpp-js/xmlnode.jsm");
 
 const CONNECTION_STATE = {
   disconnected: "disconected",
-  connected: "connected"
+  connected: "connected",
+  stream_started: "stream-started",
+  stream_ended: "stream-ended"
 };
 
 /* XMPPSession will create the  XMPP connection to create sessions (authentication, etc) */
@@ -124,6 +126,7 @@ XMPPConnection.prototype = {
   /* When connection is established */
   onConnection: function() {
     this.setState(CONNECTION_STATE.connected);
+    this._listener.onConnection();
   },
 
   /* When there is a problem with certificates */
@@ -140,18 +143,18 @@ XMPPConnection.prototype = {
     try {
       this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
     } catch(e) {
-      debug('++++++++++++++++++++++++++++++++++++++error');
-      debug(e);
+      Cu.reportError(e);
     }
   },
 
   onConnectionReset: function() {
-    this.log("ConnectionReset");
     this.setState(CONNECTION_STATE.disconnected);
+    this._listener.onDisconnected('connection-reset');
   },
 
   onConnectionTimedOut: function() {
-    this.log("ConnectionTimeout");
+    this.setState(CONNECTION_STATE.disconnected);
+    this._listener.onDisconnected('connection-timeout');
   },
 
   onTransportStatus: function(aTransport, aStatus, aProgress, aProgressmax) {
@@ -162,12 +165,6 @@ XMPPConnection.prototype = {
   /* Private methods */
   setState: function(state) {
     this._state = state;
-    switch(state) {
-      case CONNECTION_STATE.connected:
-        this._listener.onConnection();
-        break;
-      default:
-    }
   },
 
   _addCertificate: function() {
@@ -211,12 +208,18 @@ XMPPConnection.prototype = {
 
   /* Stream started */
   onStartStream: function() {
-    /* Set state?? */
+    this.setState(CONNECTION_STATE.stream_started);
   },
 
   /* Stream ended */
   onEndStream: function() {
-    /* Set state?? */
+    this.setState(CONNECTION_STATE.stream_ended);
+  },
+
+  onError: function(error, exception) {
+    if(error != 'parse-warning') {
+      Cu.reportError(error + ": " + exception);
+    }
   },
 
   log: function(aString) {
@@ -240,9 +243,18 @@ function createParser(aListener) {
               .createInstance(Ci.nsISAXXMLReader);
 
   parser.errorHandler = {
-    error: function() { },
-    fatelError: function() { },
-    ignorableWarning: function() { },
+    error: function(locator, error) {
+      aListener.onError('parse-error', error);
+    },
+
+    fatelError: function(locator, error) {
+      aListener.onError('parse-fatel-error', error);
+    },
+
+    ignorableWarning: function(locator, error) {
+      aListener.onError('parse-warning', error);
+    },
+
     QueryInterface: function(iid) {
       if(!iid.equals(Ci.nsiSupports) && !iid.equals(Ci.nsiISAXErrorHandler))
         throw Cr.NS_ERROR_NO_INTERFACE;
@@ -273,7 +285,7 @@ function createParser(aListener) {
 
     characters: function(value) {
       if(!this._node) {
-      // Error
+        aListener.onError('parsing-characters', 'No parent for characters: ' + value);
         return;
       }
 
@@ -282,7 +294,7 @@ function createParser(aListener) {
 
     endElement: function(uri, localName, qName) {
       if(!this._node) {
-      // Error
+        aListener.onError('parsing-node', 'No parent for node : ' + localName);
         return;
       }
 
