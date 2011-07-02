@@ -110,29 +110,14 @@ var $FIRST_LEVEL_ELEMENTS = {
   'error'               : 'urn:ietf:params:xml:ns:xmpp-streams',
 };
 
+/* Stanza Builder */
 const Stanza = {
-  _addChild: function(node, data) {
-    if(typeof(data) == 'string') {
-      node.addText(data);
-    } else {
-      node.addChild(data);
-      data.parent_node = data;
-    }
-  },
-
-  _addChildren: function(node, data) {
-    if(typeof(data) != 'string' && typeof(data.length) != 'undefined') {
-      for(var i = 0; i < data.length; ++i)
-        Stanza._addChild(node, data[i]);
-    } else {
-      Stanza._addChild(node, data);
-    }
-  },
-
+  /* Create a presence stanza */
   presence: function(attr, data) {
     return Stanza.node('presence', null, attr, data);
   },
 
+  /* Parse a presence stanza */
   parsePresence: function(stanza) {
     var p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
              status: null};
@@ -162,6 +147,7 @@ const Stanza = {
     return p;
   },
 
+  /* Parse a vCard */
   parseVCard: function(stanza) {
     var vCard = {jid: null, fullname: null, icon: null};
     vCard.jid = parseJID(stanza.attributes['from']);
@@ -188,6 +174,7 @@ const Stanza = {
     return vCard;
   },
 
+  /* Create a message stanza */
   message: function(to, attr, data) {
     if(!attr)
       attr = {};
@@ -197,6 +184,7 @@ const Stanza = {
     return Stanza.node('message', null, attr, data);
   },
 
+  /* Parse a message stanza */
   parseMessage: function(stanza) {
     var m = {from: null,
              body: ''};
@@ -208,6 +196,7 @@ const Stanza = {
     return m;
   },
 
+  /* Create a iq stanza */
   iq: function(type, id, to, data) {
     var n = new XMLNode(null, null, 'iq', 'iq', null)
     if(id)
@@ -222,6 +211,7 @@ const Stanza = {
     return n;
   },
 
+  /* Create a XML node */
   node: function(name, ns, attr, data) {
     var n = new XMLNode(null, ns, name, name, null);
     for(var at in attr) {
@@ -231,9 +221,29 @@ const Stanza = {
     Stanza._addChildren(n, data);
 
     return n;
-  }
+  },
+
+  _addChild: function(node, data) {
+    if(typeof(data) == 'string') {
+      node.addText(data);
+    } else {
+      node.addChild(data);
+      data.parent_node = data;
+    }
+  },
+
+  _addChildren: function(node, data) {
+    if(typeof(data) != 'string' && typeof(data.length) != 'undefined') {
+      for(var i = 0; i < data.length; ++i)
+        Stanza._addChild(node, data[i]);
+    } else {
+      Stanza._addChild(node, data);
+    }
+  },
 };
 
+/* Text node
+ * Contains a text */
 function TextNode(text) {
   this.text = text;
 }
@@ -241,19 +251,23 @@ function TextNode(text) {
 TextNode.prototype = {
   get type() "text",
 
+  /* Returns a indented XML */
   convertToString: function(indent) {
     return indent + this.text + '\n';
   },
 
+  /* Returns the plain XML */
   getXML: function() {
     return this.text;
   },
 
+  /* Returns inner XML */
   innerXML: function() {
     return this.text;
   }
 };
 
+/* XML node */
 function XMLNode(parent_node, uri, localName, qName, attributes) {
   this.parent_node = parent_node;
   this.uri = uri;
@@ -273,6 +287,7 @@ function XMLNode(parent_node, uri, localName, qName, attributes) {
 XMLNode.prototype = {
   get type() "node",
 
+  /* Add a new child node */
   addChild: function(node) {
     if(this.cmap[node.qName])
      this.cmap[node.qName].push(node);
@@ -282,10 +297,12 @@ XMLNode.prototype = {
     this.children.push(node);
   },
 
+  /* Add text node */
   addText: function(text) {
     this.children.push(new TextNode(text));
   },
-  
+
+  /* Get an element inside the node using a query */
   getElement: function(query) {
    if(query.length == 0)
      return null;
@@ -305,6 +322,7 @@ XMLNode.prototype = {
    return null;
   },
 
+  /* Get all elements matchign the query */
   getElements: function(query) {
    if(query.length == 0)
      return [];
@@ -324,35 +342,29 @@ XMLNode.prototype = {
    return res;
   },
 
+  /* Get immediate children by the node name */
   getChildren: function(name) {
     if(this.cmap[name])
       return this.cmap[name];
     return [];
   },
 
+  /* Test if the node is a stanza */
   isXmppStanza: function() {
-//    return true;
     if($FIRST_LEVEL_ELEMENTS[this.qName] && ($FIRST_LEVEL_ELEMENTS[this.qName] == this.uri ||
        ($FIRST_LEVEL_ELEMENTS[this.qName] instanceof Array &&
        $FIRST_LEVEL_ELEMENTS[this.qName].indexOf(this.uri) != -1)))
       return true;
     else
       return false;
-    // TODO 
   },
 
-  _getXmlns: function() {
-    if(this.uri)
-      return 'xmlns="' + this.uri + '"';
-    else
-      return '';
-  },
-
+  /* Returns indented XML */
   convertToString: function(indent) {
     if(!indent)
       indent = '';
 
-    var s = indent + '<' + this.qName + ' ' + this._getXmlns() + ' ' + this.getAttributeText() + '>\n';
+    var s = indent + '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>\n';
 
     for(var i = 0; i < this.children.length; ++i) {
       s += this.children[i].convertToString(indent + ' ');
@@ -362,7 +374,32 @@ XMLNode.prototype = {
     return s;
   },
 
-  getAttributeText: function() {
+  /* Returns the XML */
+  getXML: function() {
+    return '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>' +
+        this.innerXML() +
+        '</' + this.qName + '>';
+  },
+
+  /* Returns the inner XML */
+  innerXML: function() {
+    var s = '';
+    for(var i = 0; i < this.children.length; ++i) {
+      s += this.children[i].getXML();
+    }
+
+    return s;
+  },
+
+  /* Private methods */
+  _getXmlns: function() {
+    if(this.uri)
+      return 'xmlns="' + this.uri + '"';
+    else
+      return '';
+  },
+
+  _getAttributeText: function() {
     var s = "";
 
     for(var name in this.attributes) {
@@ -371,20 +408,5 @@ XMLNode.prototype = {
 
     return s;
   },
-
-  getXML: function() {
-    return '<' + this.qName + ' ' + this._getXmlns() + ' ' + this.getAttributeText() + '>' +
-        this.innerXML() +
-        '</' + this.qName + '>';
-  },
-
-  innerXML: function() {
-    var s = '';
-    for(var i = 0; i < this.children.length; ++i) {
-      s += this.children[i].getXML();
-    }
-
-    return s;
-  }
 };
 
