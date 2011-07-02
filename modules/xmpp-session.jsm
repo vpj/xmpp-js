@@ -135,15 +135,23 @@ XMPPSession.prototype = {
     this.startStream();
   },
 
+  /* The conenction got disconnected */
   onDisconnected: function(error, exception) {
-    this.log('disconnected: ' + error);
+    this._listener.onError('disconnected-' + error, 'Disconnected: ' + exception);
+  },
 
-    if(exception)
-      Cu.reportError(exception);
+  /* On error in the connection */
+  onError: function(error, exception) {
+    this._listener.onError('connection-' + error, exception);
   },
 
   /* When a Stanza is received */
   onXmppStanza: function(name, stanza) {
+    if(name == 'failure') {
+      this._listener.onError('failure', 'Not authorised');
+      return;
+    }
+
     switch(this._state) {
       case STATE.initializing_stream:
         var starttls = this._isStartTLS(stanza);
@@ -156,7 +164,8 @@ XMPPSession.prototype = {
           }
         }
         if(starttls == 'required' && !this._connection.isStartTLS) {
-          this._listener.onError('Starttls required but the connection does not support');
+          this._listener.onError('starttls', 'StartTLS required but the connection does not support');
+          return;
         }
 
         var mechs = this._getMechanisms(stanza);
@@ -170,7 +179,7 @@ XMPPSession.prototype = {
         }
 
         if(!this._auth) {
-          this._listener.onError('None of the authentication mechanisms are supported');
+          this._listener.onError('no-auth-mech', 'None of the authentication mechanisms are supported');
           this.log(mechs);
           return;
         }
@@ -179,7 +188,7 @@ XMPPSession.prototype = {
         try {
           var res = this._auth.next(stanza);
         } catch(e) {
-          this._listener.onError('Authentication failure: ' + e);
+          this._listener.onError('auth-mech', 'Authentication failure: ' + e);
         }
 
         if(res.send)
@@ -196,7 +205,6 @@ XMPPSession.prototype = {
         break;
 
       case STATE.auth_waiting_results:
-        //TODO: check failure
         this.setState(STATE.auth_success);
         this._connection.reset();
         this.startStream();

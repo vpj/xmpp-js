@@ -144,6 +144,7 @@ XMPPConnection.prototype = {
       this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
     } catch(e) {
       Cu.reportError(e);
+      this._listener.onError('parser-exception', e);
     }
   },
 
@@ -217,8 +218,9 @@ XMPPConnection.prototype = {
   },
 
   onError: function(error, exception) {
+    Cu.reportError(error + ": " + exception);
     if(error != 'parse-warning') {
-      Cu.reportError(error + ": " + exception);
+      this._listener.onError(error, exception);
     }
   },
 

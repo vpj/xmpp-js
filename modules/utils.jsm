@@ -41,9 +41,11 @@ const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
 
-
+/* Normalize a string
+ * Removes all characters except alpha-numerics */
 function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
+/* Parse Jabber ID */
 function parseJID(jid) {
   var res = {};
   if(!jid)
@@ -65,6 +67,7 @@ function parseJID(jid) {
   return res;
 }
 
+/* Save Buddy Icon */
 function saveIcon(jid, type, encoded) {
   var content = b64.decode(encoded);
   var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", jid + '.jpg']);
@@ -97,11 +100,13 @@ function async(fn) {
                         Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
+/* Print debugging output */
 function debug(str) {
   dump(str);
   dump('\n');
 }
 
+/* Log */
 function log(str) {
   if(typeof(str) == 'undefined' || !str)
     str == "null";
@@ -109,6 +114,7 @@ function log(str) {
   Services.console.logStringMessage('' + str);
 }
 
+/* Get a JSON string for an object */
 function getJSON(obj) {
   if(typeof(obj) == "undefined" || !obj) {
     return "null";
@@ -128,6 +134,7 @@ function getJSON(obj) {
   return res;
 }
 
+/* Print a object for debugging */
 function debugJSON(obj) {
   debug(getJSON(obj));
 }

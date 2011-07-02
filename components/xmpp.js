@@ -137,7 +137,10 @@ Account.prototype = {
     this._server = this.getString('server');
     this._port = this.getInt('port');
     if(this.getBool('ssl')) {
-      this._security = ['ssl'];
+      this._security.push('ssl');
+    }
+    if(this.getBool('starttls')) {
+      this._security.push('starttls');
     }
 
     this._connection =
@@ -208,7 +211,7 @@ Account.prototype = {
   },
 
   /* Called when there is an error in the xmpp session */
-  onError: function(aException) {
+  onError: function(aError, aException) {
     Cu.reportError(aException);
     this._disconnect();
     this.gotDisconnected(this._base.ERROR_OTHER_ERROR, aException.toString());
@@ -383,7 +386,8 @@ XMPPProtocol.prototype = {
   options: {
     "server": {label: "Server", default: "talk.google.com"},
     "port": {label: "Port", default: 443},
-    "ssl": {label: "Use SSL", default: true}
+    "ssl": {label: "Use SSL", default: true},
+    "starttls": {label: "Use StartTLS", default: false},
   }
 };
 
