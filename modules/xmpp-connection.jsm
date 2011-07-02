@@ -219,7 +219,7 @@ XMPPConnection.prototype = {
 
   onError: function(error, exception) {
     Cu.reportError(error + ": " + exception);
-    if(error != 'parse-warning') {
+    if(error != 'parse-warning' && error != 'parsing-characters') {
       this._listener.onError(error, exception);
     }
   },
@@ -274,9 +274,11 @@ function createParser(aListener) {
     },
 
     startElement: function(uri, localName, qName, attributes) {
-      if(!this._node) {
+      if(qName == 'stream:stream') {
+        Cu.reportError('stream:stream ignoring');
+        return;
       }
-      // TODO:Should <stream:stream> be ignored? Otherwise the whole stream will be kept in memory
+
       var node = new XMLNode(this._node, uri, localName, qName, attributes);
       if(this._node) {
         this._node.addChild(node);
@@ -295,6 +297,10 @@ function createParser(aListener) {
     },
 
     endElement: function(uri, localName, qName) {
+      if(qName == 'stream:stream') {
+        return;
+      }
+
       if(!this._node) {
         aListener.onError('parsing-node', 'No parent for node : ' + localName);
         return;

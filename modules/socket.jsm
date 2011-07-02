@@ -226,7 +226,7 @@ const Socket = {
 
   // Send data on the output stream.
   sendData: function(/* string */ aData) {
-    this.log("Send data: <" + aData + ">");
+    this.log("Send data: " + aData);
 
     try {
       this._outputStream.write(aData + this.delimiter,
