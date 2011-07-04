@@ -41,7 +41,7 @@
 	<Description about="urn:mozilla:install-manifest">
 		<!-- Extension Information //-->
 		<em:id>xmpp-js@vpj</em:id>
-		<em:version>0.3pre</em:version>
+		<em:version>0.1</em:version>
 		<em:type>2</em:type> <!-- Extension //-->
 
 		<!-- Front End MetaData //-->
@@ -57,7 +57,7 @@
 				<!-- Instantbird //-->
 				<em:id>{33cb9019-c295-46dd-be21-8c4936574bee}</em:id>
 				<em:minVersion>0.3a2pre</em:minVersion>
-				<em:maxVersion>0.3</em:maxVersion>
+				<em:maxVersion>1.0</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 	</Description>
