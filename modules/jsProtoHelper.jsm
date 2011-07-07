@@ -73,8 +73,8 @@ function LOG(aString)
 
 function setTimeout(aFunction, aDelay)
 {
-  var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-  var args = Array.prototype.slice.call(arguments, 2);
+  let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  let args = Array.prototype.slice.call(arguments, 2);
   // A reference to the timer should be kept to ensure it won't be
   // GC'ed before firing the callback.
   let callback = {
@@ -802,7 +802,7 @@ const ForwardProtocolPrototype = {
 };
 
 function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis) {
-  var xhr = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+  let xhr = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
                       .createInstance(Ci.nsIXMLHttpRequest);
   xhr.mozBackgroundRequest = true; // no error dialogs
   xhr.open(aPOSTData ? "POST" : "GET", aUrl);

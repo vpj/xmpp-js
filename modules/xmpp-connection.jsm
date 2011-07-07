@@ -179,17 +179,17 @@ XMPPConnection.prototype = {
     if (!add)
      return;
 
-    var args = {
+    let args = {
       exceptionAdded: false,
       location: "https://" + this._host + ":" + this._port,
       prefetchCert: true
     };
-    var options = "chrome=yes,modal=yes,centerscreen=yes";
+    let options = "chrome=yes,modal=yes,centerscreen=yes";
 
     // FIXME: This dialog is giving errors :S
-    var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"]
+    let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"]
           .getService(Ci.nsIWindowWatcher)
-    var self = this;
+    let self = this;
     async(function() {
       ww.openWindow(null,
             "chrome://pippki/content/exceptionDialog.xul",

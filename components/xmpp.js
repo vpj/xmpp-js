@@ -161,7 +161,7 @@ Account.prototype = {
    * Called for each buddy locally stored before connecting
    * to the server. */
   loadBuddy: function(aBuddy, aTag) {
-    var buddy = new AccountBuddy(this, aBuddy, aTag);
+    let buddy = new AccountBuddy(this, aBuddy, aTag);
     this._buddies[buddy.normalizedName] = buddy;
     debug("loadBuddy " + buddy.normalizedName);
     return buddy;
@@ -172,7 +172,7 @@ Account.prototype = {
   onConnection: function() {
     this.base.connected();
 
-    var s = Stanza.iq("get", null, null,
+    let s = Stanza.iq("get", null, null,
         Stanza.node("query", $NS.roster, {}, []));
 
     /* Set the call back onRoster */
@@ -186,24 +186,24 @@ Account.prototype = {
 
   /* Called when a presence stanza is received */
   onPresenceStanza: function(aStanza) {
-    var from = aStanza.attributes["from"];
+    let from = aStanza.attributes["from"];
     from = parseJID(from).jid;
     debug(from);
-    var buddy = this._buddies[normalize(from)];
+    let buddy = this._buddies[normalize(from)];
     if (!buddy) {
       debug("buddy not present: " + from);
       return;
     }
 
-    var p = Stanza.parsePresence(aStanza);
+    let p = Stanza.parsePresence(aStanza);
     debug(buddy._buddy.id);
     buddy.setStatus(p.show, p.status);
   },
 
   /* Called when a message stanza is received */
   onMessageStanza: function(aStanza) {
-    var m = Stanza.parseMessage(aStanza);
-    var norm = normalize(m.from.jid);
+    let m = Stanza.parseMessage(aStanza);
+    let norm = normalize(m.from.jid);
     if (!this.createConversation(norm))
       return;
 
@@ -220,7 +220,7 @@ Account.prototype = {
   /* Callbacks for Query stanzas */
   /* When a vCard is recieved */
   onVCard: function(aName, aStanza) {
-    var vCard = null;
+    let vCard = null;
     try {
       vCard = Stanza.parseVCard(aStanza);
     } catch(e) {
@@ -242,17 +242,17 @@ Account.prototype = {
 
   /* When the roster is received */
   onRoster: function(aName, aStanza) {
-    var q = aStanza.getChildren("query");
-    for (var i = 0; i < q.length; ++i) {
+    let q = aStanza.getChildren("query");
+    for (let i = 0; i < q.length; ++i) {
       if (q[i].uri == $NS.roster) {
-        var items = q[i].getChildren("item");
-        for (var j = 0; j < items.length; ++j) {
+        let items = q[i].getChildren("item");
+        for (let j = 0; j < items.length; ++j) {
           this._addBuddy("friends", items[j].attributes["jid"], items[j].attributes["name"]);
         }
       }
     }
 
-    var s = Stanza.presence({"xml:lang": "en"},
+    let s = Stanza.presence({"xml:lang": "en"},
          [Stanza.node("show", null, null, "dnd"),
           Stanza.node("status", null, null, "Whazzaaa")]);
     this._connection.sendStanza(s);
@@ -269,7 +269,7 @@ Account.prototype = {
   /* Public methods */
   /* Send a message to a buddy */
   sendMessage: function(aTo, aMsg) {
-    var s = Stanza.message(aTo, null,
+    let s = Stanza.message(aTo, null,
         Stanza.node("body", null, {}, aMsg));
 
     this._connection.sendStanza(s);
@@ -298,7 +298,7 @@ Account.prototype = {
 
   /* Disconnect from the server */
   _disconnect: function() {
-    for (var b in this._buddies) {
+    for (let b in this._buddies) {
       this._buddies[b].setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
     }
 
@@ -322,7 +322,7 @@ Account.prototype = {
 
   /* Add a new buddy to the local storage */
   _addBuddy: function(aTagName, aName, aAlias) {
-    var s = Stanza.iq("get", null, aName,
+    let s = Stanza.iq("get", null, aName,
         Stanza.node("vCard", "vcard-temp", {}, []));
     this._connection.sendStanza(s, this.onVCard, this);
 
@@ -330,11 +330,11 @@ Account.prototype = {
       debug("locally present");
       return;
     }
-    var self = this;
+    let self = this;
 
     setTimeout(function() {
-      var tag = self._createTag(aTagName);
-      var buddy = new AccountBuddy(self, null, tag, aName);
+      let tag = self._createTag(aTagName);
+      let buddy = new AccountBuddy(self, null, tag, aName);
 
       Components.classes["@instantbird.org/purple/contacts-service;1"]
                 .getService(Ci.imIContactsService)
@@ -348,7 +348,7 @@ Account.prototype = {
 
   /* Set the user statue on the server */
   _statusChanged: function(aStatusType, aMsg) {
-    var s = "";
+    let s = "";
 
     aMsg = aMsg || "";
     if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
@@ -364,7 +364,7 @@ Account.prototype = {
       //TODO: disconnect
       s = "xa";
     }
-    var s = Stanza.presence({"xml:lang": "en"},
+    let s = Stanza.presence({"xml:lang": "en"},
          [Stanza.node("show", null, null, s),
           Stanza.node("status", null, null, aMsg)]);
     this._connection.sendStanza(s);

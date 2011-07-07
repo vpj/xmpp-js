@@ -396,7 +396,7 @@ const Socket = {
   _openStreams: function() {
     // Security notification callbacks (must support nsIBadCertListener2 and
     // nsISSLErrorListener for SSL connections, and possibly other interfaces).
-    var self = this;
+    let self = this;
     this.transport.securityCallbacks = {
         notifyCertProblem: function(aSocketInfo, aStatus, aTargetSite) {
             self.log("Bad Certificate");

@@ -185,7 +185,7 @@ XMPPSession.prototype = {
         }
 
       case STATE.auth_starting:
-        let res = null;
+        let res;
         try {
           res = this._auth.next(aStanza);
         } catch(e) {
@@ -214,7 +214,7 @@ XMPPSession.prototype = {
 
       case STATE.auth_success:
         this.setState(STATE.auth_bind);
-        let s = Stanza.iq("set", null, null,
+        var s = Stanza.iq("set", null, null,
             Stanza.node("bind", $NS.bind, {},
               Stanza.node("resource", null, {}, this._resource)));
         this.sendStanza(s);
@@ -227,7 +227,7 @@ XMPPSession.prototype = {
         this._JID = parseJID(this._fullJID);
         this._resource = this._JID.resource;
         this.setState(STATE.start_session);
-        let s = Stanza.iq("set", null, null,
+        var s = Stanza.iq("set", null, null,
             Stanza.node("session", $NS.session, {}, []));
         this.sendStanza(s);
         break;
