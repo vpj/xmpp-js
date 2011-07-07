@@ -151,12 +151,12 @@ XMPPConnection.prototype = {
 
   onConnectionReset: function() {
     this.setState(CONNECTION_STATE.disconnected);
-    this._listener.onDisconnected("connection-reset");
+    this._listener.onDisconnected("connection-reset", "Connection Reset");
   },
 
   onConnectionTimedOut: function() {
     this.setState(CONNECTION_STATE.disconnected);
-    this._listener.onDisconnected("connection-timeout");
+    this._listener.onDisconnected("connection-timeout", "Connection Timeout");
   },
 
   onTransportStatus: function(aTransport, aStatus, aProgress, aProgressmax) {
