@@ -109,10 +109,10 @@ XMPPConnection.prototype = {
   reset: function() {
     this._parser = createParser(this);
     this._parseReq = {
-      cancel: function(status) {},
-      isPending: function() {},
-      resume: function() {},
-      suspend: function() {}
+      cancel: function(status) { },
+      isPending: function() { },
+      resume: function() { },
+      suspend: function() { }
     };
     this._parser.onStartRequest(this._parseReq, null);
   },
@@ -314,13 +314,13 @@ function createParser(aListener) {
       this._node = this._node.parent_node;
     },
 
-    processingInstruction: function(aTarget, aData) {},
+    processingInstruction: function(aTarget, aData) { },
 
-    ignorableWhitespace: function(aWhitespace) {},
+    ignorableWhitespace: function(aWhitespace) { },
 
-    startPrefixMapping: function(aPrefix, aUri) {},
+    startPrefixMapping: function(aPrefix, aUri) { },
 
-    endPrefixMapping: function(aPrefix) {},
+    endPrefixMapping: function(aPrefix) { },
 
     QueryInterface: function(aInterfaceId) {
       if (!aInterfaceId.equals(Ci.nsISupports) && !aInterfaceId.equals(Ci.nsISAXContentHandler))

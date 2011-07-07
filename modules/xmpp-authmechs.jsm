@@ -75,7 +75,7 @@ DigestMD5Auth.prototype = {
     let decoded = b64.decode(data);
     let list = decoded.split(",");
     let reg = /"|'/g;
-    let result = {};
+    let result = new Object();
 
     for (let i = 0; i < list.length; ++i) {
       let e = list[i].split("=");

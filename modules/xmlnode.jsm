@@ -119,8 +119,8 @@ const Stanza = {
 
   /* Parse a presence stanza */
   parsePresence: function(aStanza) {
-    let p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
-             status: null};
+    let p = new Object({show: Ci.imIStatusInfo.STATUS_AVAILABLE,
+             status: null});
     let show = aStanza.getChildren("show");
     if (show.length > 0) {
       show = show[0].innerXML();
@@ -149,7 +149,7 @@ const Stanza = {
 
   /* Parse a vCard */
   parseVCard: function(aStanza) {
-    let vCard = {jid: null, fullname: null, icon: null};
+    let vCard = new Object({jid: null, fullname: null, icon: null});
     vCard.jid = parseJID(aStanza.attributes["from"]);
     if (!vCard.jid)
       return null;
@@ -177,7 +177,7 @@ const Stanza = {
   /* Create a message stanza */
   message: function(aTo, aAttr, aData) {
     if (!aAttr)
-      aAttr = {};
+      aAttr = new Object();
 
     aAttr["to"] = aTo;
 
@@ -186,8 +186,8 @@ const Stanza = {
 
   /* Parse a message stanza */
   parseMessage: function(aStanza) {
-    let m = {from: null,
-             body: ""};
+    let m = new Object({from: null,
+             body: ""});
     m.from = parseJID(aStanza.attributes["from"]);
     let b = aStanza.getChildren("body");
     if (b.length > 0)
@@ -234,7 +234,7 @@ const Stanza = {
   },
 
   _addChildren: function(aNode, aData) {
-    if (typeof(aData) != "string" && 'length' in aData) {
+    if (Array.isArray(aData)) {
       for (let i = 0; i < aData.length; ++i)
         Stanza._addChild(aNode, aData[i]);
     }
@@ -257,10 +257,10 @@ TextNode.prototype = {
   convertToString: function(aIndent) aIndent + this.text + "\n",
 
   /* Returns the plain XML */
-  getXML: function() return this.text,
+  getXML: function() this.text,
 
   /* Returns inner XML */
-  innerXML: function() return this.text
+  innerXML: function() this.text
 };
 
 /* XML node */
@@ -269,9 +269,9 @@ function XMLNode(aParentNode, aUri, aLocalName, aQName, aAttr) {
   this.uri = aUri;
   this.localName = aLocalName;
   this.qName = aQName;
-  this.attributes = {};
-  this.children = [];
-  this.cmap = {};
+  this.attributes = new Object();
+  this.children = new Array();
+  this.cmap = new Object();
 
   if (aAttr) {
     for (let i = 0; i < aAttr.length; ++i) {
@@ -321,15 +321,15 @@ XMLNode.prototype = {
   /* Get all elements matchign the query */
   getElements: function(aQuery) {
    if (aQuery.length == 0)
-     return [];
+     return new Array();
    if (this.qName != aQuery[0])
-     return [];
+     return new Array();
    if (aQuery.length == 1)
      return [this];
 
    let c = this.getChildren(aQuery[1]);
    let nq = aQuery.slice(1);
-   let res = [];
+   let res = new Array();
    for (let i = 0; i < c.length; ++i) {
      let n = c[i].getElements(nq);
      res = res.concat(n);
@@ -342,7 +342,7 @@ XMLNode.prototype = {
   getChildren: function(aName) {
     if (this.cmap[aName])
       return this.cmap[aName];
-    return [];
+    return new Array();
   },
 
   /* Test if the node is a stanza */

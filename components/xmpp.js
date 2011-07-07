@@ -40,7 +40,7 @@ function Conversation(aAccount, aBuddy)
   this.buddy = aBuddy;
   this.account = aAccount;
   this._name = aBuddy.contactDisplayName;
-  this._observers = [];
+  this._observers = new Array();
   this._opened = false;
   Services.conversations.addConversation(this);
 }
@@ -104,15 +104,15 @@ function Account(aProtoInstance, aKey, aName)
   this._password = null;
   this._server = null;
   this._port = null;
-  this._security = [];
+  this._security = new Array();
   /* A map of on going conversations */
-  this._conv = {},
+  this._conv = new Object(),
 
   /* XMPP Connection */
   this._connection = null,
 
   /* Map of buddies */
-  this._buddies = {},
+  this._buddies = new Object(),
 
 
   Services.obs.addObserver(this, "status-changed", false);
@@ -173,7 +173,7 @@ Account.prototype = {
     this.base.connected();
 
     let s = Stanza.iq("get", null, null,
-        Stanza.node("query", $NS.roster, {}, []));
+        Stanza.node("query", $NS.roster, new Object(), new Array()));
 
     /* Set the call back onRoster */
     this._connection.sendStanza(s, this.onRoster, this);
@@ -271,7 +271,7 @@ Account.prototype = {
   /* Send a message to a buddy */
   sendMessage: function(aTo, aMsg) {
     let s = Stanza.message(aTo, null,
-        Stanza.node("body", null, {}, aMsg));
+        Stanza.node("body", null, new Object(), aMsg));
 
     this._connection.sendStanza(s);
   },
@@ -324,7 +324,7 @@ Account.prototype = {
   /* Add a new buddy to the local storage */
   _addBuddy: function(aTagName, aName, aAlias) {
     let s = Stanza.iq("get", null, aName,
-        Stanza.node("vCard", "vcard-temp", {}, []));
+        Stanza.node("vCard", "vcard-temp", new Object(), new Array()));
     this._connection.sendStanza(s, this.onVCard, this);
 
     if (this._buddies.hasOwnProperty(normalize(aName))) {

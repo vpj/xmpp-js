@@ -61,7 +61,7 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._password = aPassword;
   this._listener = aListener;
   this._auth = null;
-  this._authMechs = {"PLAIN": PlainAuth, "DIGEST-MD5": DigestMD5Auth};
+  this._authMechs = new Object({"PLAIN": PlainAuth, "DIGEST-MD5": DigestMD5Auth});
   this._resource = "instantbird";
   this._events = new StanzaEventManager();
   this._state = STATE.disconnected;
@@ -157,7 +157,7 @@ XMPPSession.prototype = {
         let starttls = this._isStartTLS(aStanza);
         if (this._connection.isStartTLS) {
           if (starttls == "required" || starttls == "optional") {
-            let n =  Stanza.node("starttls", $NS.tls, {}, []);
+            let n =  Stanza.node("starttls", $NS.tls, new Object(), new Array());
             this.sendStanza(n);
             this.setState(STATE.requested_tls);
             break;
@@ -215,8 +215,8 @@ XMPPSession.prototype = {
       case STATE.auth_success:
         this.setState(STATE.auth_bind);
         var s = Stanza.iq("set", null, null,
-            Stanza.node("bind", $NS.bind, {},
-              Stanza.node("resource", null, {}, this._resource)));
+            Stanza.node("bind", $NS.bind, new Object(),
+              Stanza.node("resource", null, new Object(), this._resource)));
         this.sendStanza(s);
         break;
 
@@ -228,7 +228,7 @@ XMPPSession.prototype = {
         this._resource = this._JID.resource;
         this.setState(STATE.start_session);
         var s = Stanza.iq("set", null, null,
-            Stanza.node("session", $NS.session, {}, []));
+            Stanza.node("session", $NS.session, new Object(), new Array()));
         this.sendStanza(s);
         break;
 
@@ -256,9 +256,9 @@ XMPPSession.prototype = {
   /* Get supported authentication mechanisms */
   _getMechanisms: function(aStanza) {
     if (aStanza.localName != "features")
-      return [];
+      return new Array();
     let mechs = aStanza.getChildren("mechanisms");
-    let res = [];
+    let res = new Array();
     for (let i = 0; i < mechs.length; ++i) {
       let mech = mechs[i].getChildren("mechanism");
       for (let j = 0; j < mech.length; ++j) {

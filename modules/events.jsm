@@ -37,7 +37,7 @@ StanzaEventManager.prototype = {
   add: function(aId, aCallback, aObj) {
     if (!aObj)
       aObj = aCallback;
-    this.handlers[aId] = {cb: aCallback, obj: aObj};
+    this.handlers[aId] = new Object({cb: aCallback, obj: aObj});
   },
 
   remove: function(aId) {
