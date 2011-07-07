@@ -353,11 +353,14 @@ Account.prototype = {
     aMsg = aMsg || "";
     if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
       s = "chat";
-    } else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
+    }
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
       s = "dnd";
-    } else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
+    }
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
       s = "away";
-    } else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+    }
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
       //TODO: disconnect
       s = "xa";
     }

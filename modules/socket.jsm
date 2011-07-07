@@ -330,7 +330,8 @@ const Socket = {
         // Notify we've received data
         this.onBinaryDataReceived(buffer);
       }
-    } else {
+    }
+    else {
       if (this.delimiter) {
         // Load the data from the stream
         this._incomingDataBuffer += this._scriptableInputStream.read(aCount);
@@ -341,7 +342,8 @@ const Socket = {
 
         // Send each string to the handle data function
         data.forEach(this.onDataReceived, this);
-      } else {
+      }
+      else {
         // Send the whole string to the handle data function
         this.onDataReceived(this._scriptableInputStream.read(aCount));
       }
@@ -445,7 +447,8 @@ const Socket = {
       // Handle binary mode
       this._binaryInputStream = new BinaryInputStream(this._inputStream);
       this._binaryOutputStream = new BinaryOutputStream(this._outputStream);
-    } else {
+    }
+    else {
       // Handle character mode
       this._scriptableInputStream =
         new ScriptableInputStream(this._inputStream);

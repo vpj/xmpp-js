@@ -226,7 +226,8 @@ const Stanza = {
   _addChild: function(node, data) {
     if (typeof(data) == 'string') {
       node.addText(data);
-    } else {
+    }
+    else {
       node.addChild(data);
       data.parent_node = data;
     }
@@ -236,7 +237,8 @@ const Stanza = {
     if (typeof(data) != 'string' && typeof(data.length) != 'undefined') {
       for (var i = 0; i < data.length; ++i)
         Stanza._addChild(node, data[i]);
-    } else {
+    }
+    else {
       Stanza._addChild(node, data);
     }
   },

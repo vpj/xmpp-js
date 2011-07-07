@@ -82,7 +82,8 @@ function saveIcon(jid, type, encoded) {
   stream.write(content, content.length);
   if (stream instanceof Components.interfaces.nsISafeOutputStream) {
     stream.finish();
-  } else {
+  }
+  else {
     stream.close();
   }
   var ios = Cc["@mozilla.org/network/io-service;1"].
@@ -128,7 +129,8 @@ function getJSON(obj) {
       res += ' ' + v + ' = ' + getJSON(obj[v]) + '\n';
     }
     res += "}";
-  } else
+  }
+  else
     res = "" + obj;
 
   return res;
