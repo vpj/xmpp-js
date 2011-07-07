@@ -234,7 +234,7 @@ const Stanza = {
   },
 
   _addChildren: function(aNode, aData) {
-    if (typeof(aData) != "string" && typeof(aData.length) != "undefined") {
+    if (typeof(aData) != "string" && 'length' in aData) {
       for (let i = 0; i < aData.length; ++i)
         Stanza._addChild(aNode, aData[i]);
     }
@@ -291,7 +291,7 @@ XMLNode.prototype = {
 
   /* Add a new child node */
   addChild: function(aNode) {
-    if (this.cmap[aNode.qName])
+    if (this.cmap.hasOwnProperty(aNode.qName))
      this.cmap[aNode.qName].push(aNode);
     else
      this.cmap[aNode.qName] = [aNode];

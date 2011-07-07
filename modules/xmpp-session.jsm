@@ -171,7 +171,7 @@ XMPPSession.prototype = {
         let mechs = this._getMechanisms(aStanza);
         this.debug(mechs);
         for (let i = 0; i < mechs.length; ++i) {
-          if (this._authMechs[mechs[i]]) {
+          if (this._authMechs.hasOwnProperty(mechs[i])) {
             this._auth = new this._authMechs[mechs[i]](
                 this._jid.node, this._password, this._domain);
             break;

@@ -531,7 +531,7 @@ var MD5 = (function () {
 // Digest MD5 ------------------------------------------------------------------
 function digestMD5(aName, aRealm, aPassword, aNonce, aCnonce, aDigestUri) {
     let a1 = MD5.hash(aName + ":" + aRealm + ":" + aPassword) +
-             ":" + nonce + ":" + aCnonce;
+             ":" + aNonce + ":" + aCnonce;
     let a2 = "AUTHENTICATE:" + aDigestUri;
 
     return MD5.hexdigest(MD5.hexdigest(a1) + ":" + aNonce + ":00000001:" +

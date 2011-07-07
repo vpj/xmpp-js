@@ -230,7 +230,8 @@ Account.prototype = {
     if (!vCard)
       return;
 
-    if (this._buddies[normalize(vCard.jid.jid)]) {
+    //FIXME: Bug buddies dissappear when their name is set while their are online
+    if (this._buddies.hasOwnProperty(normalize(vCard.jid.jid))) {
       let b = this._buddies[normalize(vCard.jid.jid)];
       if (vCard.fullname)
         b.serverAlias = vCard.fullname;
@@ -277,12 +278,12 @@ Account.prototype = {
 
   /* Create a new conversation */
   createConversation: function(aNormalizedName) {
-    if (!this._buddies[aNormalizedName]) {
+    if (!this._buddies.hasOwnProperty(aNormalizedName)) {
       debug("No buddy: " + aNormalizedName);
       return null;
     }
 
-    if (!this._conv[aNormalizedName]) {
+    if (!this._conv.hasOwnProperty(aNormalizedName)) {
       this._conv[aNormalizedName] = new Conversation(this, this._buddies[aNormalizedName]);
     }
 
@@ -326,7 +327,7 @@ Account.prototype = {
         Stanza.node("vCard", "vcard-temp", {}, []));
     this._connection.sendStanza(s, this.onVCard, this);
 
-    if (this._buddies[normalize(aName)]) {
+    if (this._buddies.hasOwnProperty(normalize(aName))) {
       debug("locally present");
       return;
     }

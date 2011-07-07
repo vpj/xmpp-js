@@ -45,7 +45,7 @@ StanzaEventManager.prototype = {
   },
 
   exec: function(aId, aName, aStanza) {
-    if (!this.handlers[aId])
+    if (!this.handlers.hasOwnProperty(aId))
       return;
 
     this.handlers[aId].cb.call(this.handlers[aId].obj, aName, aStanza);

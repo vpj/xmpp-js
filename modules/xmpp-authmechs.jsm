@@ -59,7 +59,7 @@ function DigestMD5Auth(username, password, domain) {
 
 DigestMD5Auth.prototype = {
   next: function(aStanza) {
-    if (this["_step_" + this._step])
+    if (("_step_" + this._step) in this)
       return this["_step_" + this._step](aStanza);
   },
 
