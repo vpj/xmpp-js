@@ -154,10 +154,10 @@ XMPPSession.prototype = {
 
     switch(this._state) {
       case STATE.initializing_stream:
-        var starttls = this._isStartTLS(aStanza);
+        let starttls = this._isStartTLS(aStanza);
         if (this._connection.isStartTLS) {
           if (starttls == "required" || starttls == "optional") {
-            var n =  Stanza.node("starttls", $NS.tls, {}, []);
+            let n =  Stanza.node("starttls", $NS.tls, {}, []);
             this.sendStanza(n);
             this.setState(STATE.requested_tls);
             break;
@@ -168,9 +168,9 @@ XMPPSession.prototype = {
           return;
         }
 
-        var mechs = this._getMechanisms(aStanza);
+        let mechs = this._getMechanisms(aStanza);
         this.debug(mechs);
-        for (var i = 0; i < mechs.length; ++i) {
+        for (let i = 0; i < mechs.length; ++i) {
           if (this._authMechs[mechs[i]]) {
             this._auth = new this._authMechs[mechs[i]](
                 this._jid.node, this._password, this._domain);
@@ -185,10 +185,12 @@ XMPPSession.prototype = {
         }
 
       case STATE.auth_starting:
+        let res = null;
         try {
-          var res = this._auth.next(aStanza);
+          res = this._auth.next(aStanza);
         } catch(e) {
           this._listener.onError("auth-mech", "Authentication failure: " + e);
+          return;
         }
 
         if (res.send)
@@ -212,20 +214,20 @@ XMPPSession.prototype = {
 
       case STATE.auth_success:
         this.setState(STATE.auth_bind);
-        var s = Stanza.iq("set", null, null,
+        let s = Stanza.iq("set", null, null,
             Stanza.node("bind", $NS.bind, {},
               Stanza.node("resource", null, {}, this._resource)));
         this.sendStanza(s);
         break;
 
       case STATE.auth_bind:
-        var jid = aStanza.getElement(["iq", "bind", "jid"]);
+        let jid = aStanza.getElement(["iq", "bind", "jid"]);
         this.debug("jid = " + jid.innerXML());
         this._fullJID = jid.innerXML();
         this._JID = parseJID(this._fullJID);
         this._resource = this._JID.resource;
         this.setState(STATE.start_session);
-        var s = Stanza.iq("set", null, null,
+        let s = Stanza.iq("set", null, null,
             Stanza.node("session", $NS.session, {}, []));
         this.sendStanza(s);
         break;
@@ -255,11 +257,11 @@ XMPPSession.prototype = {
   _getMechanisms: function(aStanza) {
     if (aStanza.localName != "features")
       return [];
-    var mechs = aStanza.getChildren("mechanisms");
-    var res = [];
-    for (var i = 0; i < mechs.length; ++i) {
-      var mech = mechs[i].getChildren("mechanism");
-      for (var j = 0; j < mech.length; ++j) {
+    let mechs = aStanza.getChildren("mechanisms");
+    let res = [];
+    for (let i = 0; i < mechs.length; ++i) {
+      let mech = mechs[i].getChildren("mechanism");
+      for (let j = 0; j < mech.length; ++j) {
         res.push(mech[j].innerXML());
       }
     }
@@ -270,11 +272,11 @@ XMPPSession.prototype = {
   _isStartTLS: function(aStanza) {
     if (aStanza.localName != "features")
       return "";
-    var required = false;
-    var optional = false;
-    var starttls = aStanza.getChildren("starttls");
-    for (var i = 0; i < starttls.length; ++i) {
-      for (var j = 0; j < starttls[i].children.length; ++j) {
+    let required = false;
+    let optional = false;
+    let starttls = aStanza.getChildren("starttls");
+    for (let i = 0; i < starttls.length; ++i) {
+      for (let j = 0; j < starttls[i].children.length; ++j) {
         if (starttls[i].children[j].localName == "required")
           required = true;
         else if (starttls[i].children[j].localName == "optional")

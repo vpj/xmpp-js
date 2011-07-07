@@ -72,13 +72,13 @@ DigestMD5Auth.prototype = {
   },
 
   _decode: function(data) {
-    var decoded = b64.decode(data);
-    var list = decoded.split(",");
-    var reg = /"|'/g;
-    var result = {};
+    let decoded = b64.decode(data);
+    let list = decoded.split(",");
+    let reg = /"|'/g;
+    let result = {};
 
-    for (var i = 0; i < list.length; ++i) {
-      var e = list[i].split("=");
+    for (let i = 0; i < list.length; ++i) {
+      let e = list[i].split("=");
       if (e.length != 2) {
         throw "Error decoding: " + list[i];
       }
@@ -94,23 +94,23 @@ DigestMD5Auth.prototype = {
   },
 
   _step_1: function(aStanza) {
-    var text = aStanza.innerXML();
-    var data = this._decode(text);
-    var cnonce = MD5.hexdigest(Math.random() * 1234567890),
+    let text = aStanza.innerXML();
+    let data = this._decode(text);
+    let cnonce = MD5.hexdigest(Math.random() * 1234567890),
         realm = (data["realm"]) ? data["realm"] : "",
         nonce = data["nonce"],
         host = data["host"],
         qop = "auth",
         charset = "utf-9",
         nc = "00000001";
-    var digestUri = "xmpp/" + this._domain;
+    let digestUri = "xmpp/" + this._domain;
 
     if (host)
       digestUri += "/" + host;
 
-    var response = digestMD5(this._username, realm, this._password, nonce, cnonce, digestUri);
+    let response = digestMD5(this._username, realm, this._password, nonce, cnonce, digestUri);
 
-    var content =
+    let content =
         "username=" + this._quote(this._username) + "," +
         "realm=" + this._quote(realm) + "," +
         "nonce=" + this._quote(nonce) + "," +
@@ -121,7 +121,7 @@ DigestMD5Auth.prototype = {
         "response=" + this._quote(response) + "," +
         "charset=" + this._quote(charset);
 
-    var encoded = b64.encode(content);
+    let encoded = b64.encode(content);
 
     this._step++;
 

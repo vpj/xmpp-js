@@ -119,9 +119,9 @@ const Stanza = {
 
   /* Parse a presence stanza */
   parsePresence: function(aStanza) {
-    var p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
+    let p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
              status: null};
-    var show = aStanza.getChildren("show");
+    let show = aStanza.getChildren("show");
     if (show.length > 0) {
       show = show[0].innerXML();
       if (show == "away")
@@ -138,7 +138,7 @@ const Stanza = {
       p.show = Ci.imIStatusInfo.STATUS_OFFLINE;
     }
 
-    var status = aStanza.getChildren("status");
+    let status = aStanza.getChildren("status");
     if (status.length > 0) {
       status = status[0].innerXML();
       p.status = status;
@@ -149,21 +149,21 @@ const Stanza = {
 
   /* Parse a vCard */
   parseVCard: function(aStanza) {
-    var vCard = {jid: null, fullname: null, icon: null};
+    let vCard = {jid: null, fullname: null, icon: null};
     vCard.jid = parseJID(aStanza.attributes["from"]);
     if (!vCard.jid)
       return null;
-    var v = aStanza.getChildren("vCard");
+    let v = aStanza.getChildren("vCard");
     if (v.length <= 0)
       return null;
     v = v[0];
-    for (var i = 0; i < v.children.length; ++i) {
-      var c = v.children[i];
+    for (let i = 0; i < v.children.length; ++i) {
+      let c = v.children[i];
       if (c.type == "node") {
         if (c.localName == "FN")
           vCard.fullname = c.innerXML();
         if (c.localName == "PHOTO") {
-          var icon = saveIcon(vCard.jid.jid,
+          let icon = saveIcon(vCard.jid.jid,
                    c.getChildren("TYPE")[0].innerXML(),
                    c.getChildren("BINVAL")[0].innerXML());
           vCard.icon = icon;
@@ -186,10 +186,10 @@ const Stanza = {
 
   /* Parse a message stanza */
   parseMessage: function(aStanza) {
-    var m = {from: null,
+    let m = {from: null,
              body: ""};
     m.from = parseJID(aStanza.attributes["from"]);
-    var b = aStanza.getChildren("body");
+    let b = aStanza.getChildren("body");
     if (b.length > 0)
       m.body = b[0].innerXML();
 
@@ -198,7 +198,7 @@ const Stanza = {
 
   /* Create a iq stanza */
   iq: function(aType, aId, aTo, aData) {
-    var n = new XMLNode(null, null, "iq", "iq", null)
+    let n = new XMLNode(null, null, "iq", "iq", null)
     if (aId)
       n.attributes["id"] = aId;
     if (aTo)
@@ -213,8 +213,8 @@ const Stanza = {
 
   /* Create a XML node */
   node: function(aName, aNs, aAttr, aData) {
-    var n = new XMLNode(null, aNs, aName, aName, null);
-    for (var at in aAttr) {
+    let n = new XMLNode(null, aNs, aName, aName, null);
+    for (let at in aAttr) {
       n.attributes[at] = aAttr[at];
     }
 
@@ -235,7 +235,7 @@ const Stanza = {
 
   _addChildren: function(aNode, aData) {
     if (typeof(aData) != "string" && typeof(aData.length) != "undefined") {
-      for (var i = 0; i < aData.length; ++i)
+      for (let i = 0; i < aData.length; ++i)
         Stanza._addChild(aNode, aData[i]);
     }
     else {
@@ -280,7 +280,7 @@ function XMLNode(aParentNode, aUri, aLocalName, aQName, aAttr) {
   this.cmap = {};
 
   if (aAttr) {
-    for (var i = 0; i < aAttr.length; ++i) {
+    for (let i = 0; i < aAttr.length; ++i) {
       this.attributes[aAttr.getQName(i)] = aAttr.getValue(i);
     }
   }
@@ -313,10 +313,10 @@ XMLNode.prototype = {
    if (aQuery.length == 1)
      return this;
 
-   var c = this.getChildren(aQuery[1]);
-   var nq = aQuery.slice(1);
-   for (var i = 0; i < c.length; ++i) {
-     var n = c[i].getElement(nq);
+   let c = this.getChildren(aQuery[1]);
+   let nq = aQuery.slice(1);
+   for (let i = 0; i < c.length; ++i) {
+     let n = c[i].getElement(nq);
      if (n)
        return n;
    }
@@ -333,11 +333,11 @@ XMLNode.prototype = {
    if (aQuery.length == 1)
      return [this];
 
-   var c = this.getChildren(aQuery[1]);
-   var nq = aQuery.slice(1);
-   var res = [];
-   for (var i = 0; i < c.length; ++i) {
-     var n = c[i].getElements(nq);
+   let c = this.getChildren(aQuery[1]);
+   let nq = aQuery.slice(1);
+   let res = [];
+   for (let i = 0; i < c.length; ++i) {
+     let n = c[i].getElements(nq);
      res = res.concat(n);
    }
 
@@ -366,9 +366,9 @@ XMLNode.prototype = {
     if (!aIndent)
       aIndent = "";
 
-    var s = aIndent + "<" + this.qName + " " + this._getXmlns() + " " + this._getAttributeText() + ">\n";
+    let s = aIndent + "<" + this.qName + " " + this._getXmlns() + " " + this._getAttributeText() + ">\n";
 
-    for (var i = 0; i < this.children.length; ++i) {
+    for (let i = 0; i < this.children.length; ++i) {
       s += this.children[i].convertToString(aIndent + " ");
     }
     s += aIndent + "</" + this.qName + ">\n";
@@ -385,8 +385,8 @@ XMLNode.prototype = {
 
   /* Returns the inner XML */
   innerXML: function() {
-    var s = "";
-    for (var i = 0; i < this.children.length; ++i) {
+    let s = "";
+    for (let i = 0; i < this.children.length; ++i) {
       s += this.children[i].getXML();
     }
 
@@ -402,9 +402,9 @@ XMLNode.prototype = {
   },
 
   _getAttributeText: function() {
-    var s = "";
+    let s = "";
 
-    for (var name in this.attributes) {
+    for (let name in this.attributes) {
       s += name + "=\"" + this.attributes[name] + "\" ";
     }
 

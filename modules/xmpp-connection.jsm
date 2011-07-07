@@ -169,9 +169,9 @@ XMPPConnection.prototype = {
   },
 
   _addCertificate: function() {
-    var prmt = Cc["@mozilla.org/embedcomp/prompt-service;1"]
+    let prmt = Cc["@mozilla.org/embedcomp/prompt-service;1"]
         .getService(Ci.nsIPromptService);
-    var add = prmt.confirm(
+    let add = prmt.confirm(
         null,
         "Bad certificate",
         "Server \"" + this._host + ":" + this._port + "\"");
@@ -235,14 +235,14 @@ XMPPConnection.prototype = {
 };
 
 function readInputStreamToString(aStream, aCount) {
-  var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+  let sstream = Cc["@mozilla.org/scriptableinputstream;1"]
     .createInstance(Ci.nsIScriptableInputStream);
   sstream.init(aStream);
   return sstream.read(aCount);
 }
 
 function createParser(aListener) {
-  var parser = Cc["@mozilla.org/saxparser/xmlreader;1"]
+  let parser = Cc["@mozilla.org/saxparser/xmlreader;1"]
               .createInstance(Ci.nsISAXXMLReader);
 
   parser.errorHandler = {
@@ -280,7 +280,7 @@ function createParser(aListener) {
         return;
       }
 
-      var node = new XMLNode(this._node, aUri, aLocalName, aQName, aAttributes);
+      let node = new XMLNode(this._node, aUri, aLocalName, aQName, aAttributes);
       if (this._node) {
         this._node.addChild(node);
       }
