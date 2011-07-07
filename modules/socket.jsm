@@ -151,7 +151,7 @@ const Socket = {
     this.port = aPort;
 
     // Array of security options
-    this.security = aSecurity || new Array();
+    this.security = aSecurity || [];
 
     // Choose a proxy, use the given one, otherwise get one from the proxy
     // service
@@ -248,7 +248,7 @@ const Socket = {
     let uint8 = Uint8Array(aData);
 
     // Since there doesn't seem to be a uint8.get() method for the byte array
-    let byteArray = new Array();
+    let byteArray = [];
     for (let i = 0; i < uint8.byteLength; i++)
       byteArray.push(uint8[i]);
     try {
@@ -370,8 +370,8 @@ const Socket = {
    *****************************************************************************
    */
   _resetBuffers: function() {
-    this._incomingDataBuffer = this.binaryMode ? new Array() : "";
-    this._outgoingDataBuffer = new Array();
+    this._incomingDataBuffer = this.binaryMode ? [] : "";
+    this._outgoingDataBuffer = [];
   },
 
   _createTransport: function(aProxy) {
@@ -506,7 +506,7 @@ function TestSocket() {
     let uint8 = Uint8Array(aData);
 
     // Since there doesn't seem to be a uint8.get() method for the byte array
-    let byteArray = new Array();
+    let byteArray = [];
     for (let i = 0; i < uint8.byteLength; i++)
       byteArray.push(uint8[i]);
 

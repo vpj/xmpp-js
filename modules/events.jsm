@@ -30,14 +30,14 @@ var EXPORTED_SYMBOLS = ["StanzaEventManager"];
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 function StanzaEventManager() {
-  this.handlers = new Array();
+  this.handlers = [];
 }
 
 StanzaEventManager.prototype = {
   add: function(aId, aCallback, aObj) {
     if (!aObj)
       aObj = aCallback;
-    this.handlers[aId] = new Object({cb: aCallback, obj: aObj});
+    this.handlers[aId] = {cb: aCallback, obj: aObj};
   },
 
   remove: function(aId) {

@@ -34,6 +34,7 @@ Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 
 const CONNECTION_STATE = {
+  socket_connecting: "socket-connecting",
   disconnected: "disconected",
   connected: "connected",
   stream_started: "stream-started",
@@ -190,14 +191,15 @@ XMPPConnection.prototype = {
     let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"]
           .getService(Ci.nsIWindowWatcher)
     let self = this;
-    async(function() {
-      ww.openWindow(null,
-            "chrome://pippki/content/exceptionDialog.xul",
-            "",
-            "chrome,modal,centerscreen",
-            args);
-      self.debug("Window closed");
-    });
+    let tm = Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager);
+    tm.mainThread.dispatch(function() {
+        ww.openWindow(null,
+              "chrome://pippki/content/exceptionDialog.xul",
+              "",
+              "chrome,modal,centerscreen",
+              args);
+        self.debug("Window closed");
+      }, tm.DISPATCH_NORMAL);
   },
 
   /* Callbacks from parser */
@@ -259,7 +261,7 @@ function createParser(aListener) {
     },
 
     QueryInterface: function(aInterfaceId) {
-      if (!aInterfaceId.equals(Ci.nsiSupports) && !aInterfaceId.equals(Ci.nsiISAXErrorHandler))
+      if (!aInterfaceId.equals(Ci.nsISupports) && !aInterfaceId.equals(Ci.nsISAXErrorHandler))
         throw Cr.NS_ERROR_NO_INTERFACE;
       return this;
     }

@@ -40,7 +40,7 @@ function Conversation(aAccount, aBuddy)
   this.buddy = aBuddy;
   this.account = aAccount;
   this._name = aBuddy.contactDisplayName;
-  this._observers = new Array();
+  this._observers = [];
   this._opened = false;
   Services.conversations.addConversation(this);
 }
@@ -71,9 +71,7 @@ function TooltipInfo(aType, aLabel, aValue) {
   this._init(aType, aLabel, aValue);
 }
 
-TooltipInfo.prototype = {
-  __proto__: GenericTooltipInfo
-};
+TooltipInfo.prototype = GenericTooltipInfo;
 
 function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
@@ -100,26 +98,25 @@ AccountBuddy.prototype = {
 function Account(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
-  this._jid = null;
-  this._password = null;
-  this._server = null;
-  this._port = null;
-  this._security = new Array();
-  /* A map of on going conversations */
-  this._conv = new Object(),
 
-  /* XMPP Connection */
-  this._connection = null,
+  this._security = [];
+  /* A map of on going conversations */
+  this._conv = {},
 
   /* Map of buddies */
-  this._buddies = new Object(),
-
+  this._buddies = {},
 
   Services.obs.addObserver(this, "status-changed", false);
 }
 
 Account.prototype = {
   __proto__: GenericAccountPrototype,
+
+  _jid: null,
+  _password: null,
+  _server: null,
+  _port: null,
+  _connection: null, /* XMPP Connection */
 
   /* Events */
   observe: function(aSubject, aTopic, aMsg) {
@@ -173,7 +170,7 @@ Account.prototype = {
     this.base.connected();
 
     let s = Stanza.iq("get", null, null,
-        Stanza.node("query", $NS.roster, new Object(), new Array()));
+        Stanza.node("query", $NS.roster, {}, []));
 
     /* Set the call back onRoster */
     this._connection.sendStanza(s, this.onRoster, this);
@@ -271,7 +268,7 @@ Account.prototype = {
   /* Send a message to a buddy */
   sendMessage: function(aTo, aMsg) {
     let s = Stanza.message(aTo, null,
-        Stanza.node("body", null, new Object(), aMsg));
+        Stanza.node("body", null, {}, aMsg));
 
     this._connection.sendStanza(s);
   },
@@ -324,7 +321,7 @@ Account.prototype = {
   /* Add a new buddy to the local storage */
   _addBuddy: function(aTagName, aName, aAlias) {
     let s = Stanza.iq("get", null, aName,
-        Stanza.node("vCard", "vcard-temp", new Object(), new Array()));
+        Stanza.node("vCard", "vcard-temp", {}, []));
     this._connection.sendStanza(s, this.onVCard, this);
 
     if (this._buddies.hasOwnProperty(normalize(aName))) {

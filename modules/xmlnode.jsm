@@ -119,8 +119,8 @@ const Stanza = {
 
   /* Parse a presence stanza */
   parsePresence: function(aStanza) {
-    let p = new Object({show: Ci.imIStatusInfo.STATUS_AVAILABLE,
-             status: null});
+    let p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
+             status: null};
     let show = aStanza.getChildren("show");
     if (show.length > 0) {
       show = show[0].innerXML();
@@ -149,7 +149,7 @@ const Stanza = {
 
   /* Parse a vCard */
   parseVCard: function(aStanza) {
-    let vCard = new Object({jid: null, fullname: null, icon: null});
+    let vCard = {jid: null, fullname: null, icon: null};
     vCard.jid = parseJID(aStanza.attributes["from"]);
     if (!vCard.jid)
       return null;
@@ -177,7 +177,7 @@ const Stanza = {
   /* Create a message stanza */
   message: function(aTo, aAttr, aData) {
     if (!aAttr)
-      aAttr = new Object();
+      aAttr = {};
 
     aAttr["to"] = aTo;
 
@@ -186,8 +186,8 @@ const Stanza = {
 
   /* Parse a message stanza */
   parseMessage: function(aStanza) {
-    let m = new Object({from: null,
-             body: ""});
+    let m = {from: null,
+             body: ""};
     m.from = parseJID(aStanza.attributes["from"]);
     let b = aStanza.getChildren("body");
     if (b.length > 0)
@@ -269,9 +269,9 @@ function XMLNode(aParentNode, aUri, aLocalName, aQName, aAttr) {
   this.uri = aUri;
   this.localName = aLocalName;
   this.qName = aQName;
-  this.attributes = new Object();
-  this.children = new Array();
-  this.cmap = new Object();
+  this.attributes = {};
+  this.children = [];
+  this.cmap = {};
 
   if (aAttr) {
     for (let i = 0; i < aAttr.length; ++i) {
@@ -321,15 +321,15 @@ XMLNode.prototype = {
   /* Get all elements matchign the query */
   getElements: function(aQuery) {
    if (aQuery.length == 0)
-     return new Array();
+     return [];
    if (this.qName != aQuery[0])
-     return new Array();
+     return [];
    if (aQuery.length == 1)
      return [this];
 
    let c = this.getChildren(aQuery[1]);
    let nq = aQuery.slice(1);
-   let res = new Array();
+   let res = [];
    for (let i = 0; i < c.length; ++i) {
      let n = c[i].getElements(nq);
      res = res.concat(n);
@@ -342,13 +342,13 @@ XMLNode.prototype = {
   getChildren: function(aName) {
     if (this.cmap[aName])
       return this.cmap[aName];
-    return new Array();
+    return [];
   },
 
   /* Test if the node is a stanza */
   isXmppStanza: function() {
     if ($FIRST_LEVEL_ELEMENTS[this.qName] && ($FIRST_LEVEL_ELEMENTS[this.qName] == this.uri ||
-       ($FIRST_LEVEL_ELEMENTS[this.qName] instanceof Array &&
+       (Array.isArray($FIRST_LEVEL_ELEMENTS[this.qName]) &&
        $FIRST_LEVEL_ELEMENTS[this.qName].indexOf(this.uri) != -1)))
       return true;
     else

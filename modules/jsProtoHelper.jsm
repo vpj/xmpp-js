@@ -284,7 +284,7 @@ const GenericAccountPrototype = {
     if (!this.chatRoomFields)
       return EmptyEnumerator;
 
-    let fields = new Array();
+    let fields = [];
     for (let fieldName in this.chatRoomFields)
       fields.push(new ChatRoomField(fieldName, this.chatRoomFields[fieldName]));
     return new nsSimpleEnumerator(fields);
@@ -293,7 +293,7 @@ const GenericAccountPrototype = {
     if (!this.chatRoomFields)
       return EmptyEnumerator;
 
-    let defaultFieldValues = new Array();
+    let defaultFieldValues = [];
     for (let fieldName in this.chatRoomFields)
       defaultFieldValues[fieldName] = this.chatRoomFields[fieldName].default;
 
@@ -405,7 +405,7 @@ const GenericAccountBuddyPrototype = {
       aAvailabilityDetails = this._availabilityDetails;
 
     // Decide which notifications should be fired.
-    let notifications = new Array();
+    let notifications = [];
     if (this._statusType != aStatusType ||
         this._availabilityDetails != aAvailabilityDetails)
       notifications.push("availability-changed");
@@ -498,7 +498,7 @@ const GenericConversationPrototype = {
   _init: function(aAccount, aName) {
     this.account = aAccount;
     this._name = aName;
-    this._observers = new Array();
+    this._observers = [];
     Services.conversations.addConversation(this);
   },
 
@@ -575,7 +575,7 @@ const GenericConvChatPrototype = {
   _topicSetter: null,
 
   _init: function(aAccount, aName, aNick) {
-    this._participants = new Object();
+    this._participants = {};
     this._nick = aNick;
     GenericConversationPrototype._init.call(this, aAccount, aName);
   },
@@ -711,7 +711,7 @@ const GenericProtocolPrototype = {
     const types =
       {boolean: "Bool", string: "String", number: "Int", object: "List"};
 
-    let purplePrefs = new Array();
+    let purplePrefs = [];
     for (let optionName in this.options) {
       let option = this.options[optionName];
       if (!((typeof option.default) in types))
