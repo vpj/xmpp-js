@@ -77,7 +77,7 @@ function setTimeout(aFunction, aDelay)
   var args = Array.prototype.slice.call(arguments, 2);
   // A reference to the timer should be kept to ensure it won't be
   // GC'ed before firing the callback.
-  var callback = {
+  let callback = {
     _timer: timer,
     notify: function (aTimer) { aFunction.apply(null, args); delete this._timer; }
   };
@@ -114,7 +114,7 @@ ClassInfo.prototype = {
     throw Cr.NS_ERROR_NO_INTERFACE;
   },
   getInterfaces: function(countRef) {
-    var interfaces =
+    let interfaces =
       [Ci.nsIClassInfo, Ci.nsISupports].concat(this._interfaces);
     countRef.value = interfaces.length;
     return interfaces;

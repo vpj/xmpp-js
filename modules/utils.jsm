@@ -47,11 +47,11 @@ function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
 /* Parse Jabber ID */
 function parseJID(aJid) {
-  var res = {};
+  let res = {};
   if (!aJid)
     return null;
 
-  var v = aJid.split("/");
+  let v = aJid.split("/");
   if (v.length == 1)
     res.resource = "";
   else
@@ -69,14 +69,14 @@ function parseJID(aJid) {
 
 /* Save Buddy Icon */
 function saveIcon(aJid, aType, aEncodedContent) {
-  var content = b64.decode(aEncodedContent);
-  var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", aJid + ".jpg"]);
+  let content = b64.decode(aEncodedContent);
+  let file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", aJid + ".jpg"]);
  
   if (!file.exists())
     file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
 
-  var ostream = FileUtils.openSafeFileOutputStream(file);
-  var stream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"].
+  let ostream = FileUtils.openSafeFileOutputStream(file);
+  let stream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"].
              createInstance(Components.interfaces.nsIFileOutputStream);
   stream.init(file, 0x04 | 0x08 | 0x20, 0600, 0); // readwrite, create, truncate
   stream.write(content, content.length);
@@ -86,10 +86,10 @@ function saveIcon(aJid, aType, aEncodedContent) {
   else {
     stream.close();
   }
-  var ios = Cc["@mozilla.org/network/io-service;1"].
+  let ios = Cc["@mozilla.org/network/io-service;1"].
                        getService(Components.interfaces.nsIIOService);
 
-  var URI = ios.newFileURI(file);
+  let URI = ios.newFileURI(file);
   return URI.spec;
 }
 
@@ -121,11 +121,11 @@ function getJSON(aObject) {
     return "null";
   }
 
-  var res = "";
+  let res = "";
 
   if (typeof(aObject) == "object") {
     res = "{"
-    for (var v in aObject) {
+    for (let v in aObject) {
       res += " " + v + " = " + getJSON(aObject[v]) + "\n";
     }
     res += "}";
@@ -143,10 +143,10 @@ function debugJSON(debugJSON) {
 
 function utf8_encode(aString) {
   aString = aString.replace(/\r\n/g,"\n");
-  var utftext = "";
+  let utftext = "";
 
-  for (var n = 0; n < aString.length; n++) {
-    var c = aString.charCodeAt(n);
+  for (let n = 0; n < aString.length; n++) {
+    let c = aString.charCodeAt(n);
 
     if (c < 128)
       utftext += String.fromCharCode(c);
@@ -167,9 +167,9 @@ function utf8_encode(aString) {
 
 //utf8 > iso 8859-1
 function utf8_decode(aUtfText) {
-  var string = "";
-  var i = 0;
-  var c, c1, c2;
+  let string = "";
+  let i = 0;
+  let c, c1, c2;
   c = c1 = c2 = 0;
 
   while ( i < aUtfText.length ) {
@@ -208,9 +208,9 @@ const b64 = {
   _key : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
 
   encode: function(aInput) {
-    var output = "";
-    var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-    var i = 0;
+    let output = "";
+    let chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+    let i = 0;
 
     while (i < aInput.length) {
       chr1 = aInput.charCodeAt(i++);
@@ -235,10 +235,10 @@ const b64 = {
   },
 
   decode : function(aInput) {
-    var output = "";
-    var chr1, chr2, chr3;
-    var enc1, enc2, enc3, enc4;
-    var i = 0;
+    let output = "";
+    let chr1, chr2, chr3;
+    let enc1, enc2, enc3, enc4;
+    let i = 0;
 
     aInput = aInput.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
@@ -287,8 +287,8 @@ var MD5 = (function () {
    * to work around bugs in some JS interpreters.
    */
   var safe_add = function (x, y) {
-    var lsw = (x & 0xFFFF) + (y & 0xFFFF);
-    var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+    let lsw = (x & 0xFFFF) + (y & 0xFFFF);
+    let msw = (x >> 16) + (y >> 16) + (lsw >> 16);
     return (msw << 16) | (lsw & 0xFFFF);
   };
 
@@ -304,9 +304,9 @@ var MD5 = (function () {
    * If chrsz is ASCII, characters >255 have their hi-byte silently ignored.
    */
   var str2binl = function (str) {
-    var bin = [];
-    var mask = (1 << chrsz) - 1;
-    for (var i = 0; i < str.length * chrsz; i += chrsz)
+    let bin = [];
+    let mask = (1 << chrsz) - 1;
+    for (let i = 0; i < str.length * chrsz; i += chrsz)
         bin[i>>5] |= (str.charCodeAt(i / chrsz) & mask) << (i%32);
     return bin;
   };
@@ -315,9 +315,9 @@ var MD5 = (function () {
    * Convert an array of little-endian words to a string
    */
   var binl2str = function (bin) {
-    var str = "";
-    var mask = (1 << chrsz) - 1;
-    for (var i = 0; i < bin.length * 32; i += chrsz)
+    let str = "";
+    let mask = (1 << chrsz) - 1;
+    for (let i = 0; i < bin.length * 32; i += chrsz)
         str += String.fromCharCode((bin[i>>5] >>> (i % 32)) & mask);
     return str;
   };
@@ -326,9 +326,9 @@ var MD5 = (function () {
    * Convert an array of little-endian words to a hex string.
    */
   var binl2hex = function (binarray) {
-    var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
-    var str = "";
-    for (var i = 0; i < binarray.length * 4; i++)
+    let hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+    let str = "";
+    for (let i = 0; i < binarray.length * 4; i++)
       str += hex_tab.charAt((binarray[i>>2] >> ((i%4)*8+4)) & 0xF) +
              hex_tab.charAt((binarray[i>>2] >> ((i%4)*8  )) & 0xF);
     return str;
@@ -338,10 +338,10 @@ var MD5 = (function () {
    * Convert an array of little-endian words to a base-64 string
    */
   var binl2b64 = function (binarray) {
-    var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    var str = "";
-    var triplet, j;
-    for (var i = 0; i < binarray.length * 4; i += 3)
+    let tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let str = "";
+    let triplet, j;
+    for (let i = 0; i < binarray.length * 4; i += 3)
     {
       triplet = (((binarray[i   >> 2] >> 8 * ( i   %4)) & 0xFF) << 16) |
                 (((binarray[i+1 >> 2] >> 8 * ((i+1)%4)) & 0xFF) << 8 ) |
@@ -386,13 +386,13 @@ var MD5 = (function () {
     x[len >> 5] |= 0x80 << ((len) % 32);
     x[(((len + 64) >>> 9) << 4) + 14] = len;
 
-    var a =  1732584193;
-    var b = -271733879;
-    var c = -1732584194;
-    var d =  271733878;
+    let a =  1732584193;
+    let b = -271733879;
+    let c = -1732584194;
+    let d =  271733878;
 
-    var olda, oldb, oldc, oldd;
-    for (var i = 0; i < x.length; i += 16)
+    let olda, oldb, oldc, oldd;
+    for (let i = 0; i < x.length; i += 16)
     {
       olda = a;
       oldb = b;
@@ -479,18 +479,18 @@ var MD5 = (function () {
    * Calculate the HMAC-MD5, of a key and some data
    */
   var core_hmac_md5 = function (key, data) {
-    var bkey = str2binl(key);
+    let bkey = str2binl(key);
     if (bkey.length > 16)
       bkey = core_md5(bkey, key.length * chrsz);
 
-    var ipad = new Array(16), opad = new Array(16);
-    for (var i = 0; i < 16; i++)
+    let ipad = new Array(16), opad = new Array(16);
+    for (let i = 0; i < 16; i++)
     {
         ipad[i] = bkey[i] ^ 0x36363636;
         opad[i] = bkey[i] ^ 0x5C5C5C5C;
     }
 
-    var hash = core_md5(ipad.concat(str2binl(data)), 512 + data.length * chrsz);
+    let hash = core_md5(ipad.concat(str2binl(data)), 512 + data.length * chrsz);
     return core_md5(opad.concat(hash), 512 + 128);
   };
 
@@ -530,9 +530,9 @@ var MD5 = (function () {
 
 // Digest MD5 ------------------------------------------------------------------
 function digestMD5(aName, aRealm, aPassword, aNonce, aCnonce, aDigestUri) {
-    var a1 = MD5.hash(aName + ":" + aRealm + ":" + aPassword) +
+    let a1 = MD5.hash(aName + ":" + aRealm + ":" + aPassword) +
              ":" + nonce + ":" + aCnonce;
-    var a2 = "AUTHENTICATE:" + aDigestUri;
+    let a2 = "AUTHENTICATE:" + aDigestUri;
 
     return MD5.hexdigest(MD5.hexdigest(a1) + ":" + aNonce + ":00000001:" +
                          aCnonce + ":auth:" + MD5.hexdigest(a2));
