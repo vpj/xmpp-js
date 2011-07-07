@@ -85,7 +85,7 @@ AccountBuddy.prototype = {
   /* Returns a list of TooltipInfo objects to be displayed when the user hovers over the buddy */
   getTooltipInfo: function() {
     return null;
-    //return new nsSimpleEnumerator([new TooltipInfo('pair', 'name', 'vpj')]);
+    //return new nsSimpleEnumerator([new TooltipInfo("pair", "name", "vpj")]);
   },
 
   /* Display name of the buddy */
@@ -115,7 +115,7 @@ function Account(aProtoInstance, aKey, aName)
   this._buddies = {},
 
 
-  Services.obs.addObserver(this, 'status-changed', false);
+  Services.obs.addObserver(this, "status-changed", false);
 }
 
 Account.prototype = {
@@ -134,13 +134,13 @@ Account.prototype = {
     this._jid = this.name;
     this._JID = parseJID(this._jid);
     this._password = this.password;
-    this._server = this.getString('server');
-    this._port = this.getInt('port');
-    if (this.getBool('ssl')) {
-      this._security.push('ssl');
+    this._server = this.getString("server");
+    this._port = this.getInt("port");
+    if (this.getBool("ssl")) {
+      this._security.push("ssl");
     }
-    if (this.getBool('starttls')) {
-      this._security.push('starttls');
+    if (this.getBool("starttls")) {
+      this._security.push("starttls");
     }
 
     this._connection =
@@ -163,7 +163,7 @@ Account.prototype = {
   loadBuddy: function(aBuddy, aTag) {
     var buddy = new AccountBuddy(this, aBuddy, aTag);
     this._buddies[buddy.normalizedName] = buddy;
-    debug('loadBuddy ' + buddy.normalizedName);
+    debug("loadBuddy " + buddy.normalizedName);
     return buddy;
   },
 
@@ -172,8 +172,8 @@ Account.prototype = {
   onConnection: function() {
     this.base.connected();
 
-    var s = Stanza.iq('get', null, null,
-        Stanza.node('query', $NS.roster, {}, []));
+    var s = Stanza.iq("get", null, null,
+        Stanza.node("query", $NS.roster, {}, []));
 
     /* Set the call back onRoster */
     this._connection.sendStanza(s, this.onRoster, this);
@@ -186,12 +186,12 @@ Account.prototype = {
 
   /* Called when a presence stanza is received */
   onPresenceStanza: function(aStanza) {
-    var from = aStanza.attributes['from'];
+    var from = aStanza.attributes["from"];
     from = parseJID(from).jid;
     debug(from);
     var buddy = this._buddies[normalize(from)];
     if (!buddy) {
-      debug('buddy not present: ' + from);
+      debug("buddy not present: " + from);
       return;
     }
 
@@ -242,19 +242,19 @@ Account.prototype = {
 
   /* When the roster is received */
   onRoster: function(aName, aStanza) {
-    var q = aStanza.getChildren('query');
+    var q = aStanza.getChildren("query");
     for (var i = 0; i < q.length; ++i) {
       if (q[i].uri == $NS.roster) {
-        var items = q[i].getChildren('item');
+        var items = q[i].getChildren("item");
         for (var j = 0; j < items.length; ++j) {
-          this._addBuddy('friends', items[j].attributes['jid'], items[j].attributes['name']);
+          this._addBuddy("friends", items[j].attributes["jid"], items[j].attributes["name"]);
         }
       }
     }
 
-    var s = Stanza.presence({'xml:lang': 'en'},
-         [Stanza.node('show', null, null, 'dnd'),
-          Stanza.node('status', null, null, 'Whazzaaa')]);
+    var s = Stanza.presence({"xml:lang": "en"},
+         [Stanza.node("show", null, null, "dnd"),
+          Stanza.node("status", null, null, "Whazzaaa")]);
     this._connection.sendStanza(s);
   },
 
@@ -270,7 +270,7 @@ Account.prototype = {
   /* Send a message to a buddy */
   sendMessage: function(aTo, aMsg) {
     var s = Stanza.message(aTo, null,
-        Stanza.node('body', null, {}, aMsg));
+        Stanza.node("body", null, {}, aMsg));
 
     this._connection.sendStanza(s);
   },
@@ -278,7 +278,7 @@ Account.prototype = {
   /* Create a new conversation */
   createConversation: function(aNormalizedName) {
     if (!this._buddies[aNormalizedName]) {
-      debug('No buddy: ' + aNormalizedName);
+      debug("No buddy: " + aNormalizedName);
       return null;
     }
 
@@ -322,12 +322,12 @@ Account.prototype = {
 
   /* Add a new buddy to the local storage */
   _addBuddy: function(aTagName, aName, aAlias) {
-    var s = Stanza.iq('get', null, aName,
-        Stanza.node('vCard', 'vcard-temp', {}, []));
+    var s = Stanza.iq("get", null, aName,
+        Stanza.node("vCard", "vcard-temp", {}, []));
     this._connection.sendStanza(s, this.onVCard, this);
 
     if (this._buddies[normalize(aName)]) {
-      debug('locally present');
+      debug("locally present");
       return;
     }
     var self = this;
@@ -364,9 +364,9 @@ Account.prototype = {
       //TODO: disconnect
       s = "xa";
     }
-    var s = Stanza.presence({'xml:lang': 'en'},
-         [Stanza.node('show', null, null, s),
-          Stanza.node('status', null, null, aMsg)]);
+    var s = Stanza.presence({"xml:lang": "en"},
+         [Stanza.node("show", null, null, s),
+          Stanza.node("status", null, null, aMsg)]);
     this._connection.sendStanza(s);
   },
 };
