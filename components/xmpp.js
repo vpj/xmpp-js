@@ -99,7 +99,6 @@ function Account(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
 
-  this._security = [];
   /* A map of on going conversations */
   this._conv = {},
 
@@ -117,6 +116,7 @@ Account.prototype = {
   _server: null,
   _port: null,
   _connection: null, /* XMPP Connection */
+  _security: null,
 
   /* Events */
   observe: function(aSubject, aTopic, aMsg) {
@@ -133,6 +133,7 @@ Account.prototype = {
     this._password = this.password;
     this._server = this.getString("server");
     this._port = this.getInt("port");
+    this._security = [];
     if (this.getBool("ssl")) {
       this._security.push("ssl");
     }
