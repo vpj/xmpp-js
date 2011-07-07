@@ -407,7 +407,7 @@ const Socket = {
         },
 
         QueryInterface: function(iid) {
-            if(iid.equals(Ci.nsISupports) ||
+            if (iid.equals(Ci.nsISupports) ||
                iid.equals(Ci.nsIInterfaceRequestor) ||
                iid.equals(Ci.nsIBadCertListener2))
                 return this;

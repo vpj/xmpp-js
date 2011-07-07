@@ -166,9 +166,9 @@ const GenericTooltipInfo = {
   __proto__: ClassInfo("purpleITooltipInfo", "generic tooltipinfo object"),
 
   _init: function(type, label, value) {
-    if(type == 'pair')
+    if (type == 'pair')
       this._type = this.pair;
-    else if(type == 'sectionHeader')
+    else if (type == 'sectionHeader')
       this._type = this.sectionHeader;
     else
       this._type = this.sectionBreak;

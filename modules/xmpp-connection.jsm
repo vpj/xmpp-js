@@ -68,7 +68,7 @@ function XMPPConnection(aHost, aPort, aSecurity, aListener) {
   this._port = aPort;
   this._isStartTLS = false;
   this._security = aSecurity;
-  if(this._security.indexOf('starttls') != -1) {
+  if (this._security.indexOf('starttls') != -1) {
     this._isStartTLS = true;
   }
 
@@ -176,7 +176,7 @@ XMPPConnection.prototype = {
         'Bad certificate',
         'Server "' + this._host + ':' + this._port + '"');
 
-    if(!add)
+    if (!add)
      return;
 
     var args = {
@@ -219,7 +219,7 @@ XMPPConnection.prototype = {
 
   onError: function(error, exception) {
     Cu.reportError(error + ": " + exception);
-    if(error != 'parse-warning' && error != 'parsing-characters') {
+    if (error != 'parse-warning' && error != 'parsing-characters') {
       this._listener.onError(error, exception);
     }
   },
@@ -258,7 +258,7 @@ function createParser(aListener) {
     },
 
     QueryInterface: function(iid) {
-      if(!iid.equals(Ci.nsiSupports) && !iid.equals(Ci.nsiISAXErrorHandler))
+      if (!iid.equals(Ci.nsiSupports) && !iid.equals(Ci.nsiISAXErrorHandler))
         throw Cr.NS_ERROR_NO_INTERFACE;
       return this;
     }
@@ -274,13 +274,13 @@ function createParser(aListener) {
     },
 
     startElement: function(uri, localName, qName, attributes) {
-      if(qName == 'stream:stream') {
+      if (qName == 'stream:stream') {
         Cu.reportError('stream:stream ignoring');
         return;
       }
 
       var node = new XMLNode(this._node, uri, localName, qName, attributes);
-      if(this._node) {
+      if (this._node) {
         this._node.addChild(node);
       }
 
@@ -288,7 +288,7 @@ function createParser(aListener) {
     },
 
     characters: function(value) {
-      if(!this._node) {
+      if (!this._node) {
         aListener.onError('parsing-characters', 'No parent for characters: ' + value);
         return;
       }
@@ -297,16 +297,16 @@ function createParser(aListener) {
     },
 
     endElement: function(uri, localName, qName) {
-      if(qName == 'stream:stream') {
+      if (qName == 'stream:stream') {
         return;
       }
 
-      if(!this._node) {
+      if (!this._node) {
         aListener.onError('parsing-node', 'No parent for node : ' + localName);
         return;
       }
 
-      if(this._node.isXmppStanza()) {
+      if (this._node.isXmppStanza()) {
         aListener.onXmppStanza(qName, this._node);
       }
 
@@ -322,7 +322,7 @@ function createParser(aListener) {
     endPrefixMapping: function(prefix) {},
 
     QueryInterface: function(iid) {
-      if(!iid.equals(Ci.nsISupports) && !iid.equals(Ci.nsISAXContentHandler))
+      if (!iid.equals(Ci.nsISupports) && !iid.equals(Ci.nsISAXContentHandler))
         throw Cr.NS_ERROR_NO_INTERFACE;
       return this;
     }

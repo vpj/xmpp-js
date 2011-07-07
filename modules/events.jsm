@@ -35,7 +35,7 @@ function StanzaEventManager() {
 
 StanzaEventManager.prototype = {
   add: function(id, callback, obj) {
-    if(!obj)
+    if (!obj)
       obj = callback;
     this.handlers[id] = {cb: callback, obj: obj}; 
   },
@@ -45,7 +45,7 @@ StanzaEventManager.prototype = {
   },
 
   exec: function(id, name, stanza) {
-    if(!this.handlers[id])
+    if (!this.handlers[id])
       return;
 
     this.handlers[id].cb.call(this.handlers[id].obj, name, stanza);

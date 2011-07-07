@@ -59,7 +59,7 @@ function DigestMD5Auth(username, password, domain) {
 
 DigestMD5Auth.prototype = {
   next: function(stanza) {
-    if(this['_step_' + this._step])
+    if (this['_step_' + this._step])
       return this['_step_' + this._step](stanza);
   },
 
@@ -77,9 +77,9 @@ DigestMD5Auth.prototype = {
     var reg = /"|'/g;
     var result = {};
 
-    for(var i = 0; i < list.length; ++i) {
+    for (var i = 0; i < list.length; ++i) {
       var e = list[i].split('=');
-      if(e.length != 2) {
+      if (e.length != 2) {
         throw "Error decoding: " + list[i];
       }
 
@@ -105,7 +105,7 @@ DigestMD5Auth.prototype = {
         nc = '00000001';
     var digestUri = 'xmpp/' + this._domain;
 
-    if(host)
+    if (host)
       digestUri += '/' + host;
 
     var response = digestMD5(this._username, realm, this._password, nonce, cnonce, digestUri);

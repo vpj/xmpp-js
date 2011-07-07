@@ -122,24 +122,24 @@ const Stanza = {
     var p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
              status: null};
     var show = stanza.getChildren('show');
-    if(show.length > 0) {
+    if (show.length > 0) {
       show = show[0].innerXML();
-      if(show == 'away')
+      if (show == 'away')
         p.show = Ci.imIStatusInfo.STATUS_AWAY;
-      else if(show == 'chat')
+      else if (show == 'chat')
         p.show = Ci.imIStatusInfo.STATUS_AVAILABLE;
-      else if(show == 'dnd')
+      else if (show == 'dnd')
         p.show = Ci.imIStatusInfo.STATUS_UNAVAILABLE;
-      else if(show == 'xa')
+      else if (show == 'xa')
         p.show = Ci.imIStatusInfo.STATUS_IDLE;
     }
 
-    if(stanza.attributes['type'] == 'unavailable') {
+    if (stanza.attributes['type'] == 'unavailable') {
       p.show = Ci.imIStatusInfo.STATUS_OFFLINE;
     }
 
     var status = stanza.getChildren('status');
-    if(status.length > 0) {
+    if (status.length > 0) {
       status = status[0].innerXML();
       p.status = status;
     }
@@ -151,18 +151,18 @@ const Stanza = {
   parseVCard: function(stanza) {
     var vCard = {jid: null, fullname: null, icon: null};
     vCard.jid = parseJID(stanza.attributes['from']);
-    if(!vCard.jid)
+    if (!vCard.jid)
       return null;
     var v = stanza.getChildren('vCard');
-    if(v.length <= 0)
+    if (v.length <= 0)
       return null;
     v = v[0];
-    for(var i = 0; i < v.children.length; ++i) {
+    for (var i = 0; i < v.children.length; ++i) {
       var c = v.children[i];
-      if(c.type == 'node') {
-        if(c.localName == 'FN')
+      if (c.type == 'node') {
+        if (c.localName == 'FN')
           vCard.fullname = c.innerXML();
-        if(c.localName == 'PHOTO') {
+        if (c.localName == 'PHOTO') {
           var icon = saveIcon(vCard.jid.jid,
                    c.getChildren('TYPE')[0].innerXML(),
                    c.getChildren('BINVAL')[0].innerXML());
@@ -176,7 +176,7 @@ const Stanza = {
 
   /* Create a message stanza */
   message: function(to, attr, data) {
-    if(!attr)
+    if (!attr)
       attr = {};
 
     attr['to'] = to;
@@ -190,7 +190,7 @@ const Stanza = {
              body: ''};
     m.from = parseJID(stanza.attributes['from']);
     var b = stanza.getChildren('body');
-    if(b.length > 0)
+    if (b.length > 0)
       m.body = b[0].innerXML();
 
     return m;
@@ -199,9 +199,9 @@ const Stanza = {
   /* Create a iq stanza */
   iq: function(type, id, to, data) {
     var n = new XMLNode(null, null, 'iq', 'iq', null)
-    if(id)
+    if (id)
       n.attributes['id'] = id;
-    if(to)
+    if (to)
       n.attributes['to'] = to;
 
     n.attributes['type'] = type;
@@ -214,7 +214,7 @@ const Stanza = {
   /* Create a XML node */
   node: function(name, ns, attr, data) {
     var n = new XMLNode(null, ns, name, name, null);
-    for(var at in attr) {
+    for (var at in attr) {
       n.attributes[at] = attr[at];
     }
 
@@ -224,7 +224,7 @@ const Stanza = {
   },
 
   _addChild: function(node, data) {
-    if(typeof(data) == 'string') {
+    if (typeof(data) == 'string') {
       node.addText(data);
     } else {
       node.addChild(data);
@@ -233,8 +233,8 @@ const Stanza = {
   },
 
   _addChildren: function(node, data) {
-    if(typeof(data) != 'string' && typeof(data.length) != 'undefined') {
-      for(var i = 0; i < data.length; ++i)
+    if (typeof(data) != 'string' && typeof(data.length) != 'undefined') {
+      for (var i = 0; i < data.length; ++i)
         Stanza._addChild(node, data[i]);
     } else {
       Stanza._addChild(node, data);
@@ -277,8 +277,8 @@ function XMLNode(parent_node, uri, localName, qName, attributes) {
   this.children = [];
   this.cmap = {};
 
-  if(attributes) {
-    for(var i = 0; i < attributes.length; ++i) {
+  if (attributes) {
+    for (var i = 0; i < attributes.length; ++i) {
       this.attributes[attributes.getQName(i)] = attributes.getValue(i);
     }
   }
@@ -289,7 +289,7 @@ XMLNode.prototype = {
 
   /* Add a new child node */
   addChild: function(node) {
-    if(this.cmap[node.qName])
+    if (this.cmap[node.qName])
      this.cmap[node.qName].push(node);
     else
      this.cmap[node.qName] = [node];
@@ -304,18 +304,18 @@ XMLNode.prototype = {
 
   /* Get an element inside the node using a query */
   getElement: function(query) {
-   if(query.length == 0)
+   if (query.length == 0)
      return null;
-   if(this.qName != query[0])
+   if (this.qName != query[0])
      return null;
-   if(query.length == 1)
+   if (query.length == 1)
      return this;
 
    var c = this.getChildren(query[1]);
    var nq = query.slice(1);
-   for(var i = 0; i < c.length; ++i) {
+   for (var i = 0; i < c.length; ++i) {
      var n = c[i].getElement(nq);
-     if(n)
+     if (n)
        return n;
    }
 
@@ -324,17 +324,17 @@ XMLNode.prototype = {
 
   /* Get all elements matchign the query */
   getElements: function(query) {
-   if(query.length == 0)
+   if (query.length == 0)
      return [];
-   if(this.qName != query[0])
+   if (this.qName != query[0])
      return [];
-   if(query.length == 1)
+   if (query.length == 1)
      return [this];
 
    var c = this.getChildren(query[1]);
    var nq = query.slice(1);
    var res = [];
-   for(var i = 0; i < c.length; ++i) {
+   for (var i = 0; i < c.length; ++i) {
      var n = c[i].getElements(nq);
      res = res.concat(n);
    }
@@ -344,14 +344,14 @@ XMLNode.prototype = {
 
   /* Get immediate children by the node name */
   getChildren: function(name) {
-    if(this.cmap[name])
+    if (this.cmap[name])
       return this.cmap[name];
     return [];
   },
 
   /* Test if the node is a stanza */
   isXmppStanza: function() {
-    if($FIRST_LEVEL_ELEMENTS[this.qName] && ($FIRST_LEVEL_ELEMENTS[this.qName] == this.uri ||
+    if ($FIRST_LEVEL_ELEMENTS[this.qName] && ($FIRST_LEVEL_ELEMENTS[this.qName] == this.uri ||
        ($FIRST_LEVEL_ELEMENTS[this.qName] instanceof Array &&
        $FIRST_LEVEL_ELEMENTS[this.qName].indexOf(this.uri) != -1)))
       return true;
@@ -361,12 +361,12 @@ XMLNode.prototype = {
 
   /* Returns indented XML */
   convertToString: function(indent) {
-    if(!indent)
+    if (!indent)
       indent = '';
 
     var s = indent + '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>\n';
 
-    for(var i = 0; i < this.children.length; ++i) {
+    for (var i = 0; i < this.children.length; ++i) {
       s += this.children[i].convertToString(indent + ' ');
     }
     s += indent + '</' + this.qName + '>\n';
@@ -384,7 +384,7 @@ XMLNode.prototype = {
   /* Returns the inner XML */
   innerXML: function() {
     var s = '';
-    for(var i = 0; i < this.children.length; ++i) {
+    for (var i = 0; i < this.children.length; ++i) {
       s += this.children[i].getXML();
     }
 
@@ -393,7 +393,7 @@ XMLNode.prototype = {
 
   /* Private methods */
   _getXmlns: function() {
-    if(this.uri)
+    if (this.uri)
       return 'xmlns="' + this.uri + '"';
     else
       return '';
@@ -402,7 +402,7 @@ XMLNode.prototype = {
   _getAttributeText: function() {
     var s = "";
 
-    for(var name in this.attributes) {
+    for (var name in this.attributes) {
       s += name + '="' + this.attributes[name] + '" ';
     }
 

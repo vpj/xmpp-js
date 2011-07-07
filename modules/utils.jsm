@@ -48,11 +48,11 @@ function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 /* Parse Jabber ID */
 function parseJID(jid) {
   var res = {};
-  if(!jid)
+  if (!jid)
     return null;
 
   var v = jid.split('/');
-  if(v.length == 1)
+  if (v.length == 1)
     res.resource = "";
   else
     res.resource = jid.substr(v[0].length + 1);
@@ -72,7 +72,7 @@ function saveIcon(jid, type, encoded) {
   var content = b64.decode(encoded);
   var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", jid + '.jpg']);
  
-  if(!file.exists())
+  if (!file.exists())
     file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
 
   var ostream = FileUtils.openSafeFileOutputStream(file);
@@ -108,7 +108,7 @@ function debug(str) {
 
 /* Log */
 function log(str) {
-  if(typeof(str) == 'undefined' || !str)
+  if (typeof(str) == 'undefined' || !str)
     str == "null";
 
   Services.console.logStringMessage('' + str);
@@ -116,15 +116,15 @@ function log(str) {
 
 /* Get a JSON string for an object */
 function getJSON(obj) {
-  if(typeof(obj) == "undefined" || !obj) {
+  if (typeof(obj) == "undefined" || !obj) {
     return "null";
   }
 
   var res = "";
 
-  if(typeof(obj) == 'object') {
+  if (typeof(obj) == 'object') {
     res = "{"
-    for(var v in obj) {
+    for (var v in obj) {
       res += ' ' + v + ' = ' + getJSON(obj[v]) + '\n';
     }
     res += "}";
@@ -148,7 +148,7 @@ function utf8_encode(string) {
 
     if (c < 128)
       utftext += String.fromCharCode(c);
-    else if((c > 127) && (c < 2048)) {
+    else if ((c > 127) && (c < 2048)) {
       utftext += String.fromCharCode((c >> 6) | 192);
       utftext += String.fromCharCode((c & 63) | 128);
     }
@@ -177,7 +177,7 @@ function utf8_decode(utftext) {
       string += String.fromCharCode(c);
       i++;
     }
-    else if((c > 191) && (c < 224)) {
+    else if ((c > 191) && (c < 224)) {
       c2 = utftext.charCodeAt(i+1);
       string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
       i += 2;
@@ -304,7 +304,7 @@ var MD5 = (function () {
   var str2binl = function (str) {
     var bin = [];
     var mask = (1 << chrsz) - 1;
-    for(var i = 0; i < str.length * chrsz; i += chrsz)
+    for (var i = 0; i < str.length * chrsz; i += chrsz)
         bin[i>>5] |= (str.charCodeAt(i / chrsz) & mask) << (i%32);
     return bin;
   };
@@ -315,7 +315,7 @@ var MD5 = (function () {
   var binl2str = function (bin) {
     var str = "";
     var mask = (1 << chrsz) - 1;
-    for(var i = 0; i < bin.length * 32; i += chrsz)
+    for (var i = 0; i < bin.length * 32; i += chrsz)
         str += String.fromCharCode((bin[i>>5] >>> (i % 32)) & mask);
     return str;
   };
@@ -326,7 +326,7 @@ var MD5 = (function () {
   var binl2hex = function (binarray) {
     var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
     var str = "";
-    for(var i = 0; i < binarray.length * 4; i++)
+    for (var i = 0; i < binarray.length * 4; i++)
       str += hex_tab.charAt((binarray[i>>2] >> ((i%4)*8+4)) & 0xF) +
              hex_tab.charAt((binarray[i>>2] >> ((i%4)*8  )) & 0xF);
     return str;
@@ -339,13 +339,13 @@ var MD5 = (function () {
     var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     var str = "";
     var triplet, j;
-    for(var i = 0; i < binarray.length * 4; i += 3)
+    for (var i = 0; i < binarray.length * 4; i += 3)
     {
       triplet = (((binarray[i   >> 2] >> 8 * ( i   %4)) & 0xFF) << 16) |
                 (((binarray[i+1 >> 2] >> 8 * ((i+1)%4)) & 0xFF) << 8 ) |
                 ((binarray[i+2 >> 2] >> 8 * ((i+2)%4)) & 0xFF);
-      for(j = 0; j < 4; j++)
-        if(i * 8 + j * 6 > binarray.length * 32)
+      for (j = 0; j < 4; j++)
+        if (i * 8 + j * 6 > binarray.length * 32)
           str += b64pad;
         else
           str += tab.charAt((triplet >> 6*(3-j)) & 0x3F);
@@ -478,11 +478,11 @@ var MD5 = (function () {
    */
   var core_hmac_md5 = function (key, data) {
     var bkey = str2binl(key);
-    if(bkey.length > 16)
+    if (bkey.length > 16)
       bkey = core_md5(bkey, key.length * chrsz);
 
     var ipad = new Array(16), opad = new Array(16);
-    for(var i = 0; i < 16; i++)
+    for (var i = 0; i < 16; i++)
     {
         ipad[i] = bkey[i] ^ 0x36363636;
         opad[i] = bkey[i] ^ 0x5C5C5C5C;

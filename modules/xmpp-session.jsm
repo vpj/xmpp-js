@@ -77,7 +77,7 @@ XMPPSession.prototype = {
 
   /* Disconnect from the server */
   disconnect: function() {
-    if(this._state == STATE.session_started) {
+    if (this._state == STATE.session_started) {
       this.send('</stream:stream>');
     }
     this._connection.close();
@@ -95,7 +95,7 @@ XMPPSession.prototype = {
    * a stanza of the same id. */
   sendStanza: function(stanza, callback, obj) {
     stanza.attributes['id'] = this.id();
-    if(callback)
+    if (callback)
       this._events.add(stanza.attributes.id, callback, obj);
     this.send(stanza.getXML());
     return stanza.attributes.id;
@@ -147,7 +147,7 @@ XMPPSession.prototype = {
 
   /* When a Stanza is received */
   onXmppStanza: function(name, stanza) {
-    if(name == 'failure') {
+    if (name == 'failure') {
       this._listener.onError('failure', 'Not authorised');
       return;
     }
@@ -155,30 +155,30 @@ XMPPSession.prototype = {
     switch(this._state) {
       case STATE.initializing_stream:
         var starttls = this._isStartTLS(stanza);
-        if(this._connection.isStartTLS) {
-          if(starttls == 'required' || starttls == 'optional') {
+        if (this._connection.isStartTLS) {
+          if (starttls == 'required' || starttls == 'optional') {
             var n =  Stanza.node('starttls', $NS.tls, {}, []);
             this.sendStanza(n);
             this.setState(STATE.requested_tls);
             break;
           }
         }
-        if(starttls == 'required' && !this._connection.isStartTLS) {
+        if (starttls == 'required' && !this._connection.isStartTLS) {
           this._listener.onError('starttls', 'StartTLS required but the connection does not support');
           return;
         }
 
         var mechs = this._getMechanisms(stanza);
         this.debug(mechs);
-        for(var i = 0; i < mechs.length; ++i) {
-          if(this._authMechs[mechs[i]]) {
+        for (var i = 0; i < mechs.length; ++i) {
+          if (this._authMechs[mechs[i]]) {
             this._auth = new this._authMechs[mechs[i]](
                 this._jid.node, this._password, this._domain);
             break;
           }
         }
 
-        if(!this._auth) {
+        if (!this._auth) {
           this._listener.onError('no-auth-mech', 'None of the authentication mechanisms are supported');
           this.log(mechs);
           return;
@@ -191,9 +191,9 @@ XMPPSession.prototype = {
           this._listener.onError('auth-mech', 'Authentication failure: ' + e);
         }
 
-        if(res.send)
+        if (res.send)
           this.send(res.send);
-        if(res.wait_results == true)
+        if (res.wait_results == true)
           this.setState(STATE.auth_waiting_results);
         break;
 
@@ -236,14 +236,14 @@ XMPPSession.prototype = {
         break;
 
       case STATE.session_started:
-        if(name == 'presence')
+        if (name == 'presence')
           this._listener.onPresenceStanza(stanza);
-        else if(name == 'message')
+        else if (name == 'message')
           this._listener.onMessageStanza(stanza);
         else
           this._listener.onXmppStanza(name, stanza);
 
-        if(stanza.attributes.id)
+        if (stanza.attributes.id)
           this._events.exec(stanza.attributes.id, name, stanza);
 
         break;
@@ -253,13 +253,13 @@ XMPPSession.prototype = {
   /* Private methods */
   /* Get supported authentication mechanisms */
   _getMechanisms: function(stanza) {
-    if(stanza.localName != 'features')
+    if (stanza.localName != 'features')
       return [];
     var mechs = stanza.getChildren('mechanisms');
     var res = [];
-    for(var i = 0; i < mechs.length; ++i) {
+    for (var i = 0; i < mechs.length; ++i) {
       var mech = mechs[i].getChildren('mechanism');
-      for(var j = 0; j < mech.length; ++j) {
+      for (var j = 0; j < mech.length; ++j) {
         res.push(mech[j].innerXML());
       }
     }
@@ -268,23 +268,23 @@ XMPPSession.prototype = {
 
   /* Check is starttls is required or optional */
   _isStartTLS: function(stanza) {
-    if(stanza.localName != 'features')
+    if (stanza.localName != 'features')
       return '';
     var required = false;
     var optional = false;
     var starttls = stanza.getChildren('starttls');
-    for(var i = 0; i < starttls.length; ++i) {
-      for(var j = 0; j < starttls[i].children.length; ++j) {
-        if(starttls[i].children[j].localName == 'required')
+    for (var i = 0; i < starttls.length; ++i) {
+      for (var j = 0; j < starttls[i].children.length; ++j) {
+        if (starttls[i].children[j].localName == 'required')
           required = true;
-        else if(starttls[i].children[j].localName == 'optional')
+        else if (starttls[i].children[j].localName == 'optional')
           optional = true;
       }
     }
 
-    if(optional)
+    if (optional)
       return 'optional';
-    else if(required)
+    else if (required)
       return 'required';
     else
       return 'no';

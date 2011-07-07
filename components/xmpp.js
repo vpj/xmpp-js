@@ -136,10 +136,10 @@ Account.prototype = {
     this._password = this.password;
     this._server = this.getString('server');
     this._port = this.getInt('port');
-    if(this.getBool('ssl')) {
+    if (this.getBool('ssl')) {
       this._security.push('ssl');
     }
-    if(this.getBool('starttls')) {
+    if (this.getBool('starttls')) {
       this._security.push('starttls');
     }
 
@@ -190,7 +190,7 @@ Account.prototype = {
     from = parseJID(from).jid;
     debug(from);
     var buddy = this._buddies[normalize(from)];
-    if(!buddy) {
+    if (!buddy) {
       debug('buddy not present: ' + from);
       return;
     }
@@ -204,7 +204,7 @@ Account.prototype = {
   onMessageStanza: function(stanza) {
     var m = Stanza.parseMessage(stanza);
     var norm = normalize(m.from.jid);
-    if(!this.createConversation(norm))
+    if (!this.createConversation(norm))
       return;
 
     this._conv[norm].incomingMessage(m.body);
@@ -227,14 +227,14 @@ Account.prototype = {
       debug(e);
     }
 
-    if(!vCard)
+    if (!vCard)
       return;
 
-    if(this._buddies[normalize(vCard.jid.jid)]) {
+    if (this._buddies[normalize(vCard.jid.jid)]) {
       let b = this._buddies[normalize(vCard.jid.jid)];
-      if(vCard.fullname)
+      if (vCard.fullname)
         b.serverAlias = vCard.fullname;
-      if(vCard.icon) {
+      if (vCard.icon) {
         b.buddyIconFilename = vCard.icon;
       }
     }
@@ -243,10 +243,10 @@ Account.prototype = {
   /* When the roster is received */
   onRoster: function(name, stanza) {
     var q = stanza.getChildren('query');
-    for(var i = 0; i < q.length; ++i) {
-      if(q[i].uri == $NS.roster) {
+    for (var i = 0; i < q.length; ++i) {
+      if (q[i].uri == $NS.roster) {
         var items = q[i].getChildren('item');
-        for(var j = 0; j < items.length; ++j) {
+        for (var j = 0; j < items.length; ++j) {
           this._addBuddy('friends', items[j].attributes['jid'], items[j].attributes['name']);
         }
       }
@@ -277,12 +277,12 @@ Account.prototype = {
 
   /* Create a new conversation */
   createConversation: function(aNormalizedName) {
-    if(!this._buddies[aNormalizedName]) {
+    if (!this._buddies[aNormalizedName]) {
       debug('No buddy: ' + aNormalizedName);
       return null;
     }
 
-    if(!this._conv[aNormalizedName]) {
+    if (!this._conv[aNormalizedName]) {
       this._conv[aNormalizedName] = new Conversation(this, this._buddies[aNormalizedName]);
     }
 
@@ -298,7 +298,7 @@ Account.prototype = {
 
   /* Disconnect from the server */
   _disconnect: function() {
-    for(var b in this._buddies) {
+    for (var b in this._buddies) {
       this._buddies[b].setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
     }
 
@@ -326,7 +326,7 @@ Account.prototype = {
         Stanza.node('vCard', 'vcard-temp', {}, []));
     this._connection.sendStanza(s, this.onVCard, this);
 
-    if(this._buddies[normalize(aName)]) {
+    if (this._buddies[normalize(aName)]) {
       debug('locally present');
       return;
     }
@@ -340,7 +340,7 @@ Account.prototype = {
                 .getService(Ci.imIContactsService)
                 .accountBuddyAdded(buddy);
 
-      if(aAlias)
+      if (aAlias)
         buddy.serverAlias = aAlias;
       self._buddies[normalize(aName)] = buddy;
     }, 0);
@@ -351,13 +351,13 @@ Account.prototype = {
     var s = "";
 
     aMsg = aMsg || "";
-    if(aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
+    if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
       s = "chat";
-    } else if(aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
+    } else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
       s = "dnd";
-    } else if(aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
+    } else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
       s = "away";
-    } else if(aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+    } else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
       //TODO: disconnect
       s = "xa";
     }
