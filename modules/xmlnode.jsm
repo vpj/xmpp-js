@@ -254,19 +254,13 @@ TextNode.prototype = {
   get type() "text",
 
   /* Returns a indented XML */
-  convertToString: function(aIndent) {
-    return aIndent + this.text + "\n";
-  },
+  convertToString: function(aIndent) aIndent + this.text + "\n",
 
   /* Returns the plain XML */
-  getXML: function() {
-    return this.text;
-  },
+  getXML: function() return this.text,
 
   /* Returns inner XML */
-  innerXML: function() {
-    return this.text;
-  }
+  innerXML: function() return this.text
 };
 
 /* XML node */
