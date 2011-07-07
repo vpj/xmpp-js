@@ -199,6 +199,7 @@ XMPPConnection.prototype = {
               "chrome,modal,centerscreen",
               args);
         self.debug("Window closed");
+        self.connect();
       }, tm.DISPATCH_NORMAL);
   },
 
