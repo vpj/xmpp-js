@@ -32,113 +32,113 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource://xmpp-js/utils.jsm");
 
 const $NS = {
-  xml                       : 'http://www.w3.org/XML/1998/namespace',
-  xhtml                     : 'http://www.w3.org/1999/xhtml',
-  xhtml_im                  : 'http://jabber.org/protocol/xhtml-im',
+  xml                       : "http://www.w3.org/XML/1998/namespace",
+  xhtml                     : "http://www.w3.org/1999/xhtml",
+  xhtml_im                  : "http://jabber.org/protocol/xhtml-im",
 
   //auth
-  client                    : 'jabber:client',
-  streams                   : 'http://etherx.jabber.org/streams',
-  stream                    : 'urn:ietf:params:xml:ns:xmpp-streams',
-  sasl                      : 'urn:ietf:params:xml:ns:xmpp-sasl',
-  tls                       : 'urn:ietf:params:xml:ns:xmpp-tls',
-  bind                      : 'urn:ietf:params:xml:ns:xmpp-bind',
-  session                   : 'urn:ietf:params:xml:ns:xmpp-session',
-  auth                      : 'jabber:iq:auth',
-  http_bind                 : 'http://jabber.org/protocol/httpbind',
-  http_auth                 : 'http://jabber.org/protocol/http-auth',
-  xbosh                     : 'urn:xmpp:xbosh',
+  client                    : "jabber:client",
+  streams                   : "http://etherx.jabber.org/streams",
+  stream                    : "urn:ietf:params:xml:ns:xmpp-streams",
+  sasl                      : "urn:ietf:params:xml:ns:xmpp-sasl",
+  tls                       : "urn:ietf:params:xml:ns:xmpp-tls",
+  bind                      : "urn:ietf:params:xml:ns:xmpp-bind",
+  session                   : "urn:ietf:params:xml:ns:xmpp-session",
+  auth                      : "jabber:iq:auth",
+  http_bind                 : "http://jabber.org/protocol/httpbind",
+  http_auth                 : "http://jabber.org/protocol/http-auth",
+  xbosh                     : "urn:xmpp:xbosh",
 
-  private                   : 'jabber:iq:private',
-  xdata                     : 'jabber:x:data',
+  private                   : "jabber:iq:private",
+  xdata                     : "jabber:x:data",
 
   //roster
-  roster                    : 'jabber:iq:roster',
-  roster_versioning         : 'urn:xmpp:features:rosterver',
-  roster_delimiter          : 'roster:delimiter',
+  roster                    : "jabber:iq:roster",
+  roster_versioning         : "urn:xmpp:features:rosterver",
+  roster_delimiter          : "roster:delimiter",
 
   //privacy lists
-  privacy                   : 'jabber:iq:privacy',
+  privacy                   : "jabber:iq:privacy",
 
   //discovering
-  disco_info                : 'http://jabber.org/protocol/disco#info',
-  disco_items               : 'http://jabber.org/protocol/disco#items',
-  caps                      : 'http://jabber.org/protocol/caps',
+  disco_info                : "http://jabber.org/protocol/disco#info",
+  disco_items               : "http://jabber.org/protocol/disco#items",
+  caps                      : "http://jabber.org/protocol/caps",
 
   //addressing
-  address                   : 'http://jabber.org/protocol/address',
+  address                   : "http://jabber.org/protocol/address",
 
-  muc_user                  : 'http://jabber.org/protocol/muc#user',
-  muc                       : 'http://jabber.org/protocol/muc',
-  register                  : 'jabber:iq:register',
-  delay                     : 'jabber:x:delay',
-  bookmarks                 : 'storage:bookmarks',
-  chatstates                : 'http://jabber.org/protocol/chatstates',
-  event                     : 'jabber:x:event',
-  stanzas                   : 'urn:ietf:params:xml:ns:xmpp-stanzas',
-  vcard                     : 'vcard-temp',
-  vcard_update              : 'vcard-temp:x:update',
-  ping                      : 'urn:xmpp:ping',
+  muc_user                  : "http://jabber.org/protocol/muc#user",
+  muc                       : "http://jabber.org/protocol/muc",
+  register                  : "jabber:iq:register",
+  delay                     : "jabber:x:delay",
+  bookmarks                 : "storage:bookmarks",
+  chatstates                : "http://jabber.org/protocol/chatstates",
+  event                     : "jabber:x:event",
+  stanzas                   : "urn:ietf:params:xml:ns:xmpp-stanzas",
+  vcard                     : "vcard-temp",
+  vcard_update              : "vcard-temp:x:update",
+  ping                      : "urn:xmpp:ping",
 
-  geoloc                    : 'http://jabber.org/protocol/geoloc',
-  geoloc_notify             : 'http://jabber.org/protocol/geoloc+notify',
-  mood                      : 'http://jabber.org/protocol/mood',
-  tune                      : 'http://jabber.org/protocol/tune',
-  nick                      : 'http://jabber.org/protocol/nick',
-  nick_notify               : 'http://jabber.org/protocol/nick+notify',
-  activity                  : 'http://jabber.org/protocol/activity',
-  avatar_data               : 'urn:xmpp:avatar:data',
-  avatar_data_notify        : 'urn:xmpp:avatar:data+notify',
-  avatar_metadata           : 'urn:xmpp:avatar:metadata',
-  avatar_metadata_notify    : 'urn:xmpp:avatar:metadata+notify',
-  pubsub                    : 'http://jabber.org/protocol/pubsub',
-  pubsub_event              : 'http://jabber.org/protocol/pubsub#event',
+  geoloc                    : "http://jabber.org/protocol/geoloc",
+  geoloc_notify             : "http://jabber.org/protocol/geoloc+notify",
+  mood                      : "http://jabber.org/protocol/mood",
+  tune                      : "http://jabber.org/protocol/tune",
+  nick                      : "http://jabber.org/protocol/nick",
+  nick_notify               : "http://jabber.org/protocol/nick+notify",
+  activity                  : "http://jabber.org/protocol/activity",
+  avatar_data               : "urn:xmpp:avatar:data",
+  avatar_data_notify        : "urn:xmpp:avatar:data+notify",
+  avatar_metadata           : "urn:xmpp:avatar:metadata",
+  avatar_metadata_notify    : "urn:xmpp:avatar:metadata+notify",
+  pubsub                    : "http://jabber.org/protocol/pubsub",
+  pubsub_event              : "http://jabber.org/protocol/pubsub#event",
 };
 
 
 var $FIRST_LEVEL_ELEMENTS = {
-  'message'             : 'jabber:client',
-  'presence'            : 'jabber:client',
-  'iq'                  : 'jabber:client',
-  'stream:features'     : 'http://etherx.jabber.org/streams',
-  'proceed'             : 'urn:ietf:params:xml:ns:xmpp-tls',
-  'failure'             : ['urn:ietf:params:xml:ns:xmpp-tls',
-                           'urn:ietf:params:xml:ns:xmpp-sasl'],
-  'success'             : 'urn:ietf:params:xml:ns:xmpp-sasl',
-  'failure'             : 'urn:ietf:params:xml:ns:xmpp-sasl',
-  'challenge'           : 'urn:ietf:params:xml:ns:xmpp-sasl',
-  'error'               : 'urn:ietf:params:xml:ns:xmpp-streams',
+  "message"             : "jabber:client",
+  "presence"            : "jabber:client",
+  "iq"                  : "jabber:client",
+  "stream:features"     : "http://etherx.jabber.org/streams",
+  "proceed"             : "urn:ietf:params:xml:ns:xmpp-tls",
+  "failure"             : ["urn:ietf:params:xml:ns:xmpp-tls",
+                           "urn:ietf:params:xml:ns:xmpp-sasl"],
+  "success"             : "urn:ietf:params:xml:ns:xmpp-sasl",
+  "failure"             : "urn:ietf:params:xml:ns:xmpp-sasl",
+  "challenge"           : "urn:ietf:params:xml:ns:xmpp-sasl",
+  "error"               : "urn:ietf:params:xml:ns:xmpp-streams",
 };
 
 /* Stanza Builder */
 const Stanza = {
   /* Create a presence stanza */
   presence: function(aAttr, aData) {
-    return Stanza.node('presence', null, aAttr, aData);
+    return Stanza.node("presence", null, aAttr, aData);
   },
 
   /* Parse a presence stanza */
   parsePresence: function(aStanza) {
     var p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
              status: null};
-    var show = aStanza.getChildren('show');
+    var show = aStanza.getChildren("show");
     if (show.length > 0) {
       show = show[0].innerXML();
-      if (show == 'away')
+      if (show == "away")
         p.show = Ci.imIStatusInfo.STATUS_AWAY;
-      else if (show == 'chat')
+      else if (show == "chat")
         p.show = Ci.imIStatusInfo.STATUS_AVAILABLE;
-      else if (show == 'dnd')
+      else if (show == "dnd")
         p.show = Ci.imIStatusInfo.STATUS_UNAVAILABLE;
-      else if (show == 'xa')
+      else if (show == "xa")
         p.show = Ci.imIStatusInfo.STATUS_IDLE;
     }
 
-    if (aStanza.attributes['type'] == 'unavailable') {
+    if (aStanza.attributes["type"] == "unavailable") {
       p.show = Ci.imIStatusInfo.STATUS_OFFLINE;
     }
 
-    var status = aStanza.getChildren('status');
+    var status = aStanza.getChildren("status");
     if (status.length > 0) {
       status = status[0].innerXML();
       p.status = status;
@@ -150,22 +150,22 @@ const Stanza = {
   /* Parse a vCard */
   parseVCard: function(aStanza) {
     var vCard = {jid: null, fullname: null, icon: null};
-    vCard.jid = parseJID(aStanza.attributes['from']);
+    vCard.jid = parseJID(aStanza.attributes["from"]);
     if (!vCard.jid)
       return null;
-    var v = aStanza.getChildren('vCard');
+    var v = aStanza.getChildren("vCard");
     if (v.length <= 0)
       return null;
     v = v[0];
     for (var i = 0; i < v.children.length; ++i) {
       var c = v.children[i];
-      if (c.type == 'node') {
-        if (c.localName == 'FN')
+      if (c.type == "node") {
+        if (c.localName == "FN")
           vCard.fullname = c.innerXML();
-        if (c.localName == 'PHOTO') {
+        if (c.localName == "PHOTO") {
           var icon = saveIcon(vCard.jid.jid,
-                   c.getChildren('TYPE')[0].innerXML(),
-                   c.getChildren('BINVAL')[0].innerXML());
+                   c.getChildren("TYPE")[0].innerXML(),
+                   c.getChildren("BINVAL")[0].innerXML());
           vCard.icon = icon;
         }
       }
@@ -179,17 +179,17 @@ const Stanza = {
     if (!aAttr)
       aAttr = {};
 
-    aAttr['to'] = aTo;
+    aAttr["to"] = aTo;
 
-    return Stanza.node('message', null, aAttr, aData);
+    return Stanza.node("message", null, aAttr, aData);
   },
 
   /* Parse a message stanza */
   parseMessage: function(aStanza) {
     var m = {from: null,
-             body: ''};
-    m.from = parseJID(aStanza.attributes['from']);
-    var b = aStanza.getChildren('body');
+             body: ""};
+    m.from = parseJID(aStanza.attributes["from"]);
+    var b = aStanza.getChildren("body");
     if (b.length > 0)
       m.body = b[0].innerXML();
 
@@ -198,13 +198,13 @@ const Stanza = {
 
   /* Create a iq stanza */
   iq: function(aType, aId, aTo, aData) {
-    var n = new XMLNode(null, null, 'iq', 'iq', null)
+    var n = new XMLNode(null, null, "iq", "iq", null)
     if (aId)
-      n.attributes['id'] = aId;
+      n.attributes["id"] = aId;
     if (aTo)
-      n.attributes['to'] = aTo;
+      n.attributes["to"] = aTo;
 
-    n.attributes['type'] = aType;
+    n.attributes["type"] = aType;
 
     Stanza._addChildren(n, aData);
 
@@ -224,7 +224,7 @@ const Stanza = {
   },
 
   _addChild: function(aNode, aData) {
-    if (typeof(aData) == 'string') {
+    if (typeof(aData) == "string") {
       aNode.addText(aData);
     }
     else {
@@ -234,7 +234,7 @@ const Stanza = {
   },
 
   _addChildren: function(aNode, aData) {
-    if (typeof(aData) != 'string' && typeof(aData.length) != 'undefined') {
+    if (typeof(aData) != "string" && typeof(aData.length) != "undefined") {
       for (var i = 0; i < aData.length; ++i)
         Stanza._addChild(aNode, aData[i]);
     }
@@ -255,7 +255,7 @@ TextNode.prototype = {
 
   /* Returns a indented XML */
   convertToString: function(aIndent) {
-    return aIndent + this.text + '\n';
+    return aIndent + this.text + "\n";
   },
 
   /* Returns the plain XML */
@@ -364,28 +364,28 @@ XMLNode.prototype = {
   /* Returns indented XML */
   convertToString: function(aIndent) {
     if (!aIndent)
-      aIndent = '';
+      aIndent = "";
 
-    var s = aIndent + '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>\n';
+    var s = aIndent + "<" + this.qName + " " + this._getXmlns() + " " + this._getAttributeText() + ">\n";
 
     for (var i = 0; i < this.children.length; ++i) {
-      s += this.children[i].convertToString(aIndent + ' ');
+      s += this.children[i].convertToString(aIndent + " ");
     }
-    s += aIndent + '</' + this.qName + '>\n';
+    s += aIndent + "</" + this.qName + ">\n";
 
     return s;
   },
 
   /* Returns the XML */
   getXML: function() {
-    return '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>' +
+    return "<" + this.qName + " " + this._getXmlns() + " " + this._getAttributeText() + ">" +
         this.innerXML() +
-        '</' + this.qName + '>';
+        "</" + this.qName + ">";
   },
 
   /* Returns the inner XML */
   innerXML: function() {
-    var s = '';
+    var s = "";
     for (var i = 0; i < this.children.length; ++i) {
       s += this.children[i].getXML();
     }
@@ -396,16 +396,16 @@ XMLNode.prototype = {
   /* Private methods */
   _getXmlns: function() {
     if (this.uri)
-      return 'xmlns="' + this.uri + '"';
+      return "xmlns=\"" + this.uri + "\"";
     else
-      return '';
+      return "";
   },
 
   _getAttributeText: function() {
     var s = "";
 
     for (var name in this.attributes) {
-      s += name + '="' + this.attributes[name] + '" ';
+      s += name + "=\"" + this.attributes[name] + "\" ";
     }
 
     return s;

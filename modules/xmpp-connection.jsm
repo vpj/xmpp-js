@@ -68,7 +68,7 @@ function XMPPConnection(aHost, aPort, aSecurity, aListener) {
   this._port = aPort;
   this._isStartTLS = false;
   this._security = aSecurity;
-  if (this._security.indexOf('starttls') != -1) {
+  if (this._security.indexOf("starttls") != -1) {
     this._isStartTLS = true;
   }
 
@@ -144,18 +144,18 @@ XMPPConnection.prototype = {
       this._parser.onDataAvailable(this._parseReq, null, aInputStream, aOffset, aCount);
     } catch(e) {
       Cu.reportError(e);
-      this._listener.onError('parser-exception', e);
+      this._listener.onError("parser-exception", e);
     }
   },
 
   onConnectionReset: function() {
     this.setState(CONNECTION_STATE.disconnected);
-    this._listener.onDisconnected('connection-reset');
+    this._listener.onDisconnected("connection-reset");
   },
 
   onConnectionTimedOut: function() {
     this.setState(CONNECTION_STATE.disconnected);
-    this._listener.onDisconnected('connection-timeout');
+    this._listener.onDisconnected("connection-timeout");
   },
 
   onTransportStatus: function(aTransport, aStatus, aProgress, aProgressmax) {
@@ -169,34 +169,34 @@ XMPPConnection.prototype = {
   },
 
   _addCertificate: function() {
-    var prmt = Cc['@mozilla.org/embedcomp/prompt-service;1']
+    var prmt = Cc["@mozilla.org/embedcomp/prompt-service;1"]
         .getService(Ci.nsIPromptService);
     var add = prmt.confirm(
         null,
-        'Bad certificate',
-        'Server "' + this._host + ':' + this._port + '"');
+        "Bad certificate",
+        "Server \"" + this._host + ":" + this._port + "\"");
 
     if (!add)
      return;
 
     var args = {
       exceptionAdded: false,
-      location: 'https://' + this._host + ':' + this._port,
+      location: "https://" + this._host + ":" + this._port,
       prefetchCert: true
     };
-    var options = 'chrome=yes,modal=yes,centerscreen=yes';
+    var options = "chrome=yes,modal=yes,centerscreen=yes";
 
     // FIXME: This dialog is giving errors :S
-    var ww = Cc['@mozilla.org/embedcomp/window-watcher;1']
+    var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"]
           .getService(Ci.nsIWindowWatcher)
     var self = this;
     async(function() {
       ww.openWindow(null,
-            'chrome://pippki/content/exceptionDialog.xul',
-            '',
-            'chrome,modal,centerscreen',
+            "chrome://pippki/content/exceptionDialog.xul",
+            "",
+            "chrome,modal,centerscreen",
             args);
-      self.debug('Window closed');
+      self.debug("Window closed");
     });
   },
 
@@ -218,9 +218,9 @@ XMPPConnection.prototype = {
   },
 
   onError: function(aError, aException) {
-    if(aError != 'parsing-characters')
+    if(aError != "parsing-characters")
       Cu.reportError(aError + ": " + aException);
-    if (aError != 'parse-warning' && aError != 'parsing-characters') {
+    if (aError != "parse-warning" && aError != "parsing-characters") {
       this._listener.onError(aError, aException);
     }
   },
@@ -235,27 +235,27 @@ XMPPConnection.prototype = {
 };
 
 function readInputStreamToString(aStream, aCount) {
-  var sstream = Cc['@mozilla.org/scriptableinputstream;1']
+  var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
     .createInstance(Ci.nsIScriptableInputStream);
   sstream.init(aStream);
   return sstream.read(aCount);
 }
 
 function createParser(aListener) {
-  var parser = Cc['@mozilla.org/saxparser/xmlreader;1']
+  var parser = Cc["@mozilla.org/saxparser/xmlreader;1"]
               .createInstance(Ci.nsISAXXMLReader);
 
   parser.errorHandler = {
     error: function(aLocator, aError) {
-      aListener.onError('parse-error', aError);
+      aListener.onError("parse-error", aError);
     },
 
     fatelError: function(aLocator, aError) {
-      aListener.onError('parse-fatel-error', aError);
+      aListener.onError("parse-fatel-error", aError);
     },
 
     ignorableWarning: function(aLocator, aError) {
-      aListener.onError('parse-warning', aError);
+      aListener.onError("parse-warning", aError);
     },
 
     QueryInterface: function(aInterfaceId) {
@@ -275,8 +275,8 @@ function createParser(aListener) {
     },
 
     startElement: function(aUri, aLocalName, aQName, aAttributes) {
-      if (aQName == 'stream:stream') {
-//        Cu.reportError('stream:stream ignoring');
+      if (aQName == "stream:stream") {
+//        Cu.reportError("stream:stream ignoring");
         return;
       }
 
@@ -290,7 +290,7 @@ function createParser(aListener) {
 
     characters: function(aCharacters) {
       if (!this._node) {
-        aListener.onError('parsing-characters', 'No parent for characters: ' + aCharacters);
+        aListener.onError("parsing-characters", "No parent for characters: " + aCharacters);
         return;
       }
 
@@ -298,12 +298,12 @@ function createParser(aListener) {
     },
 
     endElement: function(aUri, aLocalName, aQName) {
-      if (aQName == 'stream:stream') {
+      if (aQName == "stream:stream") {
         return;
       }
 
       if (!this._node) {
-        aListener.onError('parsing-node', 'No parent for node : ' + aLocalName);
+        aListener.onError("parsing-node", "No parent for node : " + aLocalName);
         return;
       }
 

@@ -398,20 +398,20 @@ const Socket = {
     // nsISSLErrorListener for SSL connections, and possibly other interfaces).
     var self = this;
     this.transport.securityCallbacks = {
-        notifyCertProblem: function(socketInfo, status, targetSite) {
-            self.log('error badcert');
-            self.onCertProblem(socketInfo, status, targetSite);
+        notifyCertProblem: function(aSocketInfo, aStatus, aTargetSite) {
+            self.log("Bad Certificate");
+            self.onCertProblem(aSocketInfo, aStatus, aTargetSite);
             return true;
         },
 
-        getInterface: function(iid) {
-            return this.QueryInterface(iid);
+        getInterface: function(aInterfaceId) {
+            return this.QueryInterface(aInterfaceId);
         },
 
-        QueryInterface: function(iid) {
-            if (iid.equals(Ci.nsISupports) ||
-               iid.equals(Ci.nsIInterfaceRequestor) ||
-               iid.equals(Ci.nsIBadCertListener2))
+        QueryInterface: function(aInterfaceId) {
+            if (aInterfaceId.equals(Ci.nsISupports) ||
+               aInterfaceId.equals(Ci.nsIInterfaceRequestor) ||
+               aInterfaceId.equals(Ci.nsIBadCertListener2))
                 return this;
             throw Cr.NS_ERROR_NO_INTERFACE;
         }

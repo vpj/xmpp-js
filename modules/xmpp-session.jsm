@@ -61,8 +61,8 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aDomain, aPassword, aListene
   this._password = aPassword;
   this._listener = aListener;
   this._auth = null;
-  this._authMechs = {'PLAIN': PlainAuth, 'DIGEST-MD5': DigestMD5Auth};
-  this._resource = 'instantbird';
+  this._authMechs = {"PLAIN": PlainAuth, "DIGEST-MD5": DigestMD5Auth};
+  this._resource = "instantbird";
   this._events = new StanzaEventManager();
   this._state = STATE.disconnected;
   this._stanzaId = 0;
@@ -78,7 +78,7 @@ XMPPSession.prototype = {
   /* Disconnect from the server */
   disconnect: function() {
     if (this._state == STATE.session_started) {
-      this.send('</stream:stream>');
+      this.send("</stream:stream>");
     }
     this._connection.close();
     this.setState(STATE.disconnected);
@@ -94,7 +94,7 @@ XMPPSession.prototype = {
    * when the server responds to the stanza with
    * a stanza of the same id. */
   sendStanza: function(aStanza, aCallback, aObject) {
-    aStanza.attributes['id'] = this.id();
+    aStanza.attributes["id"] = this.id();
     if (aCallback)
       this._events.add(aStanza.attributes.id, aCallback, aObject);
     this.send(aStanza.getXML());
@@ -109,7 +109,7 @@ XMPPSession.prototype = {
 
   /* Start the XMPP stream */
   startStream: function() {
-    this.send(STREAM_HEADER.replace('#host#', this._domain));
+    this.send(STREAM_HEADER.replace("#host#", this._domain));
   },
 
   /* Log a message */
@@ -137,18 +137,18 @@ XMPPSession.prototype = {
 
   /* The conenction got disconnected */
   onDisconnected: function(aError, aException) {
-    this._listener.onError('disconnected-' + aError, 'Disconnected: ' + aException);
+    this._listener.onError("disconnected-" + aError, "Disconnected: " + aException);
   },
 
   /* On error in the connection */
   onError: function(aError, aException) {
-    this._listener.onError('connection-' + aError, aException);
+    this._listener.onError("connection-" + aError, aException);
   },
 
   /* When a Stanza is received */
   onXmppStanza: function(aName, aStanza) {
-    if (aName == 'failure') {
-      this._listener.onError('failure', 'Not authorised');
+    if (aName == "failure") {
+      this._listener.onError("failure", "Not authorised");
       return;
     }
 
@@ -156,15 +156,15 @@ XMPPSession.prototype = {
       case STATE.initializing_stream:
         var starttls = this._isStartTLS(aStanza);
         if (this._connection.isStartTLS) {
-          if (starttls == 'required' || starttls == 'optional') {
-            var n =  Stanza.node('starttls', $NS.tls, {}, []);
+          if (starttls == "required" || starttls == "optional") {
+            var n =  Stanza.node("starttls", $NS.tls, {}, []);
             this.sendStanza(n);
             this.setState(STATE.requested_tls);
             break;
           }
         }
-        if (starttls == 'required' && !this._connection.isStartTLS) {
-          this._listener.onError('starttls', 'StartTLS required but the connection does not support');
+        if (starttls == "required" && !this._connection.isStartTLS) {
+          this._listener.onError("starttls", "StartTLS required but the connection does not support");
           return;
         }
 
@@ -179,7 +179,7 @@ XMPPSession.prototype = {
         }
 
         if (!this._auth) {
-          this._listener.onError('no-auth-mech', 'None of the authentication mechanisms are supported');
+          this._listener.onError("no-auth-mech", "None of the authentication mechanisms are supported");
           this.log(mechs);
           return;
         }
@@ -188,7 +188,7 @@ XMPPSession.prototype = {
         try {
           var res = this._auth.next(aStanza);
         } catch(e) {
-          this._listener.onError('auth-mech', 'Authentication failure: ' + e);
+          this._listener.onError("auth-mech", "Authentication failure: " + e);
         }
 
         if (res.send)
@@ -212,21 +212,21 @@ XMPPSession.prototype = {
 
       case STATE.auth_success:
         this.setState(STATE.auth_bind);
-        var s = Stanza.iq('set', null, null,
-            Stanza.node('bind', $NS.bind, {},
-              Stanza.node('resource', null, {}, this._resource)));
+        var s = Stanza.iq("set", null, null,
+            Stanza.node("bind", $NS.bind, {},
+              Stanza.node("resource", null, {}, this._resource)));
         this.sendStanza(s);
         break;
 
       case STATE.auth_bind:
-        var jid = aStanza.getElement(['iq', 'bind', 'jid']);
+        var jid = aStanza.getElement(["iq", "bind", "jid"]);
         this.debug("jid = " + jid.innerXML());
         this._fullJID = jid.innerXML();
         this._JID = parseJID(this._fullJID);
         this._resource = this._JID.resource;
         this.setState(STATE.start_session);
-        var s = Stanza.iq('set', null, null,
-            Stanza.node('session', $NS.session, {}, []));
+        var s = Stanza.iq("set", null, null,
+            Stanza.node("session", $NS.session, {}, []));
         this.sendStanza(s);
         break;
 
@@ -236,9 +236,9 @@ XMPPSession.prototype = {
         break;
 
       case STATE.session_started:
-        if (aName == 'presence')
+        if (aName == "presence")
           this._listener.onPresenceStanza(aStanza);
-        else if (aName == 'message')
+        else if (aName == "message")
           this._listener.onMessageStanza(aStanza);
         else
           this._listener.onXmppStanza(aName, aStanza);
@@ -253,12 +253,12 @@ XMPPSession.prototype = {
   /* Private methods */
   /* Get supported authentication mechanisms */
   _getMechanisms: function(aStanza) {
-    if (aStanza.localName != 'features')
+    if (aStanza.localName != "features")
       return [];
-    var mechs = aStanza.getChildren('mechanisms');
+    var mechs = aStanza.getChildren("mechanisms");
     var res = [];
     for (var i = 0; i < mechs.length; ++i) {
-      var mech = mechs[i].getChildren('mechanism');
+      var mech = mechs[i].getChildren("mechanism");
       for (var j = 0; j < mech.length; ++j) {
         res.push(mech[j].innerXML());
       }
@@ -268,26 +268,26 @@ XMPPSession.prototype = {
 
   /* Check is starttls is required or optional */
   _isStartTLS: function(aStanza) {
-    if (aStanza.localName != 'features')
-      return '';
+    if (aStanza.localName != "features")
+      return "";
     var required = false;
     var optional = false;
-    var starttls = aStanza.getChildren('starttls');
+    var starttls = aStanza.getChildren("starttls");
     for (var i = 0; i < starttls.length; ++i) {
       for (var j = 0; j < starttls[i].children.length; ++j) {
-        if (starttls[i].children[j].localName == 'required')
+        if (starttls[i].children[j].localName == "required")
           required = true;
-        else if (starttls[i].children[j].localName == 'optional')
+        else if (starttls[i].children[j].localName == "optional")
           optional = true;
       }
     }
 
     if (optional)
-      return 'optional';
+      return "optional";
     else if (required)
-      return 'required';
+      return "required";
     else
-      return 'no';
+      return "no";
   }
 };
 

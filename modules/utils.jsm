@@ -51,7 +51,7 @@ function parseJID(aJid) {
   if (!aJid)
     return null;
 
-  var v = aJid.split('/');
+  var v = aJid.split("/");
   if (v.length == 1)
     res.resource = "";
   else
@@ -59,10 +59,10 @@ function parseJID(aJid) {
 
   res.jid = v[0];
 
-  v = aJid.split('@');
+  v = aJid.split("@");
   res.node = v[0];
   v = v.length > 1 ? v[1] : v[0]
-  res.domain = v.split('/')[0];
+  res.domain = v.split("/")[0];
 
   return res;
 }
@@ -70,7 +70,7 @@ function parseJID(aJid) {
 /* Save Buddy Icon */
 function saveIcon(aJid, aType, aEncodedContent) {
   var content = b64.decode(aEncodedContent);
-  var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", aJid + '.jpg']);
+  var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", aJid + ".jpg"]);
  
   if (!file.exists())
     file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
@@ -94,7 +94,7 @@ function saveIcon(aJid, aType, aEncodedContent) {
 }
 
 function async(aFunction) {
-  Cc['@mozilla.org/timer;1']
+  Cc["@mozilla.org/timer;1"]
       .createInstance(Ci.nsITimer)
       .initWithCallback({notify: function(timer) aFunction() },
                         0,
@@ -104,15 +104,15 @@ function async(aFunction) {
 /* Print debugging output */
 function debug(aString) {
   dump(aString);
-  dump('\n');
+  dump("\n");
 }
 
 /* Log */
 function log(aString) {
-  if (typeof(aString) == 'undefined' || !aString)
+  if (typeof(aString) == "undefined" || !aString)
     aString = "null";
 
-  Services.console.logStringMessage('' + aString);
+  Services.console.logStringMessage("" + aString);
 }
 
 /* Get a JSON string for an object */
@@ -123,10 +123,10 @@ function getJSON(aObject) {
 
   var res = "";
 
-  if (typeof(aObject) == 'object') {
+  if (typeof(aObject) == "object") {
     res = "{"
     for (var v in aObject) {
-      res += ' ' + v + ' = ' + getJSON(aObject[v]) + '\n';
+      res += " " + v + " = " + getJSON(aObject[v]) + "\n";
     }
     res += "}";
   }
@@ -530,12 +530,12 @@ var MD5 = (function () {
 
 // Digest MD5 ------------------------------------------------------------------
 function digestMD5(aName, aRealm, aPassword, aNonce, aCnonce, aDigestUri) {
-    var a1 = MD5.hash(aName + ':' + aRealm + ':' + aPassword) +
-             ':' + nonce + ':' + aCnonce;
-    var a2 = 'AUTHENTICATE:' + aDigestUri;
+    var a1 = MD5.hash(aName + ":" + aRealm + ":" + aPassword) +
+             ":" + nonce + ":" + aCnonce;
+    var a2 = "AUTHENTICATE:" + aDigestUri;
 
-    return MD5.hexdigest(MD5.hexdigest(a1) + ':' + aNonce + ':00000001:' +
-                         aCnonce + ':auth:' + MD5.hexdigest(a2));
+    return MD5.hexdigest(MD5.hexdigest(a1) + ":" + aNonce + ":00000001:" +
+                         aCnonce + ":auth:" + MD5.hexdigest(a2));
 }
 
 

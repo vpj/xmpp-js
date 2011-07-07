@@ -43,9 +43,9 @@ PlainAuth.prototype = {
   next: function(aStanza) {
     return {
       wait_results: true,
-      send:  '<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" mechanism="PLAIN">'
-              + b64.encode('\0'+ this._username + '\0' + this._password)
-              + '</auth>'};
+      send:  "<auth xmlns=\"" + $NS.sasl + "\" mechanism=\"PLAIN\">"
+              + b64.encode("\0"+ this._username + "\0" + this._password)
+              + "</auth>"};
   }
 };
 
@@ -59,67 +59,67 @@ function DigestMD5Auth(username, password, domain) {
 
 DigestMD5Auth.prototype = {
   next: function(aStanza) {
-    if (this['_step_' + this._step])
-      return this['_step_' + this._step](aStanza);
+    if (this["_step_" + this._step])
+      return this["_step_" + this._step](aStanza);
   },
 
   _step_0: function(aStanza) {
     this._step++;
     return {
       wait_results: false,
-      send: '<auth xmlns="' + $NS.sasl + '" mechanism="DIGEST-MD5" />'
+      send: "<auth xmlns=\"" + $NS.sasl + "\" mechanism=\"DIGEST-MD5\" />"
     };
   },
 
   _decode: function(data) {
     var decoded = b64.decode(data);
-    var list = decoded.split(',');
+    var list = decoded.split(",");
     var reg = /"|'/g;
     var result = {};
 
     for (var i = 0; i < list.length; ++i) {
-      var e = list[i].split('=');
+      var e = list[i].split("=");
       if (e.length != 2) {
         throw "Error decoding: " + list[i];
       }
 
-      result[e[0]] = e[1].replace(reg, '');
+      result[e[0]] = e[1].replace(reg, "");
     }
 
     return result;
   },
 
   _quote: function(s) {
-    return '"' + s + '"';
+    return "\"" + s + "\"";
   },
 
   _step_1: function(aStanza) {
     var text = aStanza.innerXML();
     var data = this._decode(text);
     var cnonce = MD5.hexdigest(Math.random() * 1234567890),
-        realm = (data['realm']) ? data['realm'] : '',
-        nonce = data['nonce'],
-        host = data['host'],
-        qop = 'auth',
-        charset = 'utf-9',
-        nc = '00000001';
-    var digestUri = 'xmpp/' + this._domain;
+        realm = (data["realm"]) ? data["realm"] : "",
+        nonce = data["nonce"],
+        host = data["host"],
+        qop = "auth",
+        charset = "utf-9",
+        nc = "00000001";
+    var digestUri = "xmpp/" + this._domain;
 
     if (host)
-      digestUri += '/' + host;
+      digestUri += "/" + host;
 
     var response = digestMD5(this._username, realm, this._password, nonce, cnonce, digestUri);
 
-    var content = 
-        'username=' + this._quote(this._username) + ',' +
-        'realm=' + this._quote(realm) + ',' +
-        'nonce=' + this._quote(nonce) + ',' +
-        'cnonce=' + this._quote(cnonce) + ',' +
-        'nc=' + this._quote(nc) + ',' + 
-        'qop=' + this._quote(qop) + ',' + 
-        'digest-uri=' + this._quote(digestUri) + ',' +
-        'response=' + this._quote(response) + ',' +
-        'charset=' + this._quote(charset);
+    var content =
+        "username=" + this._quote(this._username) + "," +
+        "realm=" + this._quote(realm) + "," +
+        "nonce=" + this._quote(nonce) + "," +
+        "cnonce=" + this._quote(cnonce) + "," +
+        "nc=" + this._quote(nc) + "," +
+        "qop=" + this._quote(qop) + "," +
+        "digest-uri=" + this._quote(digestUri) + "," +
+        "response=" + this._quote(response) + "," +
+        "charset=" + this._quote(charset);
 
     var encoded = b64.encode(content);
 
@@ -127,8 +127,8 @@ DigestMD5Auth.prototype = {
 
     return {
       wait_results: false,
-      send: '<response xmlns="' + $NS.sasl + '">'
-            + encoded + '</response>'
+      send: "<response xmlns=\"" + $NS.sasl + "\">"
+            + encoded + "</response>"
     };
   },
 
@@ -136,7 +136,7 @@ DigestMD5Auth.prototype = {
     this._decode(aStanza.innerXML());
     return {
       wait_results: true,
-      send: '<response xmlns="' + $NS.sasl + '" />'
+      send: "<response xmlns=\"" + $NS.sasl + "\" />"
     };
   }
 };
