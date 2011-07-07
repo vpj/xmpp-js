@@ -46,20 +46,20 @@ Cu.import("resource://gre/modules/FileUtils.jsm");
 function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
 /* Parse Jabber ID */
-function parseJID(jid) {
+function parseJID(aJid) {
   var res = {};
-  if (!jid)
+  if (!aJid)
     return null;
 
-  var v = jid.split('/');
+  var v = aJid.split('/');
   if (v.length == 1)
     res.resource = "";
   else
-    res.resource = jid.substr(v[0].length + 1);
+    res.resource = aJid.substr(v[0].length + 1);
 
   res.jid = v[0];
 
-  v = jid.split('@');
+  v = aJid.split('@');
   res.node = v[0];
   v = v.length > 1 ? v[1] : v[0]
   res.domain = v.split('/')[0];
@@ -68,9 +68,9 @@ function parseJID(jid) {
 }
 
 /* Save Buddy Icon */
-function saveIcon(jid, type, encoded) {
-  var content = b64.decode(encoded);
-  var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", jid + '.jpg']);
+function saveIcon(aJid, aType, aEncodedContent) {
+  var content = b64.decode(aEncodedContent);
+  var file = FileUtils.getFile("ProfD", ["icons", "xmppj-js", aJid + '.jpg']);
  
   if (!file.exists())
     file.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
@@ -93,60 +93,60 @@ function saveIcon(jid, type, encoded) {
   return URI.spec;
 }
 
-function async(fn) {
+function async(aFunction) {
   Cc['@mozilla.org/timer;1']
       .createInstance(Ci.nsITimer)
-      .initWithCallback({notify: function(timer) fn() },
+      .initWithCallback({notify: function(timer) aFunction() },
                         0,
                         Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
 /* Print debugging output */
-function debug(str) {
-  dump(str);
+function debug(aString) {
+  dump(aString);
   dump('\n');
 }
 
 /* Log */
-function log(str) {
-  if (typeof(str) == 'undefined' || !str)
-    str == "null";
+function log(aString) {
+  if (typeof(aString) == 'undefined' || !aString)
+    aString = "null";
 
-  Services.console.logStringMessage('' + str);
+  Services.console.logStringMessage('' + aString);
 }
 
 /* Get a JSON string for an object */
-function getJSON(obj) {
-  if (typeof(obj) == "undefined" || !obj) {
+function getJSON(aObject) {
+  if (typeof(aObject) == "undefined" || !aObject) {
     return "null";
   }
 
   var res = "";
 
-  if (typeof(obj) == 'object') {
+  if (typeof(aObject) == 'object') {
     res = "{"
-    for (var v in obj) {
-      res += ' ' + v + ' = ' + getJSON(obj[v]) + '\n';
+    for (var v in aObject) {
+      res += ' ' + v + ' = ' + getJSON(aObject[v]) + '\n';
     }
     res += "}";
   }
   else
-    res = "" + obj;
+    res = "" + aObject;
 
   return res;
 }
 
 /* Print a object for debugging */
-function debugJSON(obj) {
-  debug(getJSON(obj));
+function debugJSON(debugJSON) {
+  debug(getJSON(aObject));
 }
 
-function utf8_encode(string) {
-  string = string.replace(/\r\n/g,"\n");
+function utf8_encode(aString) {
+  aString = aString.replace(/\r\n/g,"\n");
   var utftext = "";
 
-  for (var n = 0; n < string.length; n++) {
-    var c = string.charCodeAt(n);
+  for (var n = 0; n < aString.length; n++) {
+    var c = aString.charCodeAt(n);
 
     if (c < 128)
       utftext += String.fromCharCode(c);
@@ -166,27 +166,27 @@ function utf8_encode(string) {
 }
 
 //utf8 > iso 8859-1
-function utf8_decode(utftext) {
+function utf8_decode(aUtfText) {
   var string = "";
   var i = 0;
   var c, c1, c2;
   c = c1 = c2 = 0;
 
-  while ( i < utftext.length ) {
-    c = utftext.charCodeAt(i);
+  while ( i < aUtfText.length ) {
+    c = aUtfText.charCodeAt(i);
 
     if (c < 128) {
       string += String.fromCharCode(c);
       i++;
     }
     else if ((c > 191) && (c < 224)) {
-      c2 = utftext.charCodeAt(i+1);
+      c2 = aUtfText.charCodeAt(i+1);
       string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
       i += 2;
     }
     else {
-      c2 = utftext.charCodeAt(i+1);
-      c3 = utftext.charCodeAt(i+2);
+      c2 = aUtfText.charCodeAt(i+1);
+      c3 = aUtfText.charCodeAt(i+2);
       string +=
         String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
       i += 3;
@@ -207,15 +207,15 @@ const b64 = {
    */
   _key : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
 
-  encode: function(input) {
+  encode: function(aInput) {
     var output = "";
     var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
     var i = 0;
 
-    while (i < input.length) {
-      chr1 = input.charCodeAt(i++);
-      chr2 = input.charCodeAt(i++);
-      chr3 = input.charCodeAt(i++);
+    while (i < aInput.length) {
+      chr1 = aInput.charCodeAt(i++);
+      chr2 = aInput.charCodeAt(i++);
+      chr3 = aInput.charCodeAt(i++);
 
       enc1 = chr1 >> 2;
       enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
@@ -234,19 +234,19 @@ const b64 = {
     return output;
   },
 
-  decode : function(input) {
+  decode : function(aInput) {
     var output = "";
     var chr1, chr2, chr3;
     var enc1, enc2, enc3, enc4;
     var i = 0;
 
-    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+    aInput = aInput.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
-    while (i < input.length) {
-      enc1 = this._key.indexOf(input.charAt(i++));
-      enc2 = this._key.indexOf(input.charAt(i++));
-      enc3 = this._key.indexOf(input.charAt(i++));
-      enc4 = this._key.indexOf(input.charAt(i++));
+    while (i < aInput.length) {
+      enc1 = this._key.indexOf(aInput.charAt(i++));
+      enc2 = this._key.indexOf(aInput.charAt(i++));
+      enc3 = this._key.indexOf(aInput.charAt(i++));
+      enc4 = this._key.indexOf(aInput.charAt(i++));
 
       chr1 = (enc1 << 2) | (enc2 >> 4);
       chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
@@ -529,13 +529,13 @@ var MD5 = (function () {
 })();
 
 // Digest MD5 ------------------------------------------------------------------
-function digestMD5(name, realm, password, nonce, cnonce, digestUri) {
-    var a1 = MD5.hash(name + ':' + realm + ':' + password) +
-             ':' + nonce + ':' + cnonce;
-    var a2 = 'AUTHENTICATE:' + digestUri;
+function digestMD5(aName, aRealm, aPassword, aNonce, aCnonce, aDigestUri) {
+    var a1 = MD5.hash(aName + ':' + aRealm + ':' + aPassword) +
+             ':' + nonce + ':' + aCnonce;
+    var a2 = 'AUTHENTICATE:' + aDigestUri;
 
-    return MD5.hexdigest(MD5.hexdigest(a1) + ':' + nonce + ':00000001:' +
-                         cnonce + ':auth:' + MD5.hexdigest(a2));
+    return MD5.hexdigest(MD5.hexdigest(a1) + ':' + aNonce + ':00000001:' +
+                         aCnonce + ':auth:' + MD5.hexdigest(a2));
 }
 
 

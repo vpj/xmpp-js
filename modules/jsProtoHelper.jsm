@@ -165,16 +165,16 @@ XPCOMUtils.defineLazyGetter(this, "AccountBase", function()
 const GenericTooltipInfo = {
   __proto__: ClassInfo("purpleITooltipInfo", "generic tooltipinfo object"),
 
-  _init: function(type, label, value) {
-    if (type == 'pair')
+  _init: function(aType, aLabel, aValue) {
+    if (aType == 'pair')
       this._type = this.pair;
-    else if (type == 'sectionHeader')
+    else if (aType == 'sectionHeader')
       this._type = this.sectionHeader;
     else
       this._type = this.sectionBreak;
 
-    this._label = label;
-    this._value = value;
+    this._label = aLabel;
+    this._value = aValue;
   },
 
   get type() this._type,

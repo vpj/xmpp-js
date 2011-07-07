@@ -40,7 +40,7 @@ function PlainAuth(username, password, domain) {
 }
 
 PlainAuth.prototype = {
-  next: function(stanza) {
+  next: function(aStanza) {
     return {
       wait_results: true,
       send:  '<auth xmlns="urn:ietf:params:xml:ns:xmpp-sasl" mechanism="PLAIN">'
@@ -58,12 +58,12 @@ function DigestMD5Auth(username, password, domain) {
 }
 
 DigestMD5Auth.prototype = {
-  next: function(stanza) {
+  next: function(aStanza) {
     if (this['_step_' + this._step])
-      return this['_step_' + this._step](stanza);
+      return this['_step_' + this._step](aStanza);
   },
 
-  _step_0: function(stanza) {
+  _step_0: function(aStanza) {
     this._step++;
     return {
       wait_results: false,
@@ -93,8 +93,8 @@ DigestMD5Auth.prototype = {
     return '"' + s + '"';
   },
 
-  _step_1: function(stanza) {
-    var text = stanza.innerXML();
+  _step_1: function(aStanza) {
+    var text = aStanza.innerXML();
     var data = this._decode(text);
     var cnonce = MD5.hexdigest(Math.random() * 1234567890),
         realm = (data['realm']) ? data['realm'] : '',
@@ -132,8 +132,8 @@ DigestMD5Auth.prototype = {
     };
   },
 
-  _step_2: function(stanza) {
-    this._decode(stanza.innerXML());
+  _step_2: function(aStanza) {
+    this._decode(aStanza.innerXML());
     return {
       wait_results: true,
       send: '<response xmlns="' + $NS.sasl + '" />'

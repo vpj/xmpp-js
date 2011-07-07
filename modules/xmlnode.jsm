@@ -113,15 +113,15 @@ var $FIRST_LEVEL_ELEMENTS = {
 /* Stanza Builder */
 const Stanza = {
   /* Create a presence stanza */
-  presence: function(attr, data) {
-    return Stanza.node('presence', null, attr, data);
+  presence: function(aAttr, aData) {
+    return Stanza.node('presence', null, aAttr, aData);
   },
 
   /* Parse a presence stanza */
-  parsePresence: function(stanza) {
+  parsePresence: function(aStanza) {
     var p = {show: Ci.imIStatusInfo.STATUS_AVAILABLE,
              status: null};
-    var show = stanza.getChildren('show');
+    var show = aStanza.getChildren('show');
     if (show.length > 0) {
       show = show[0].innerXML();
       if (show == 'away')
@@ -134,11 +134,11 @@ const Stanza = {
         p.show = Ci.imIStatusInfo.STATUS_IDLE;
     }
 
-    if (stanza.attributes['type'] == 'unavailable') {
+    if (aStanza.attributes['type'] == 'unavailable') {
       p.show = Ci.imIStatusInfo.STATUS_OFFLINE;
     }
 
-    var status = stanza.getChildren('status');
+    var status = aStanza.getChildren('status');
     if (status.length > 0) {
       status = status[0].innerXML();
       p.status = status;
@@ -148,12 +148,12 @@ const Stanza = {
   },
 
   /* Parse a vCard */
-  parseVCard: function(stanza) {
+  parseVCard: function(aStanza) {
     var vCard = {jid: null, fullname: null, icon: null};
-    vCard.jid = parseJID(stanza.attributes['from']);
+    vCard.jid = parseJID(aStanza.attributes['from']);
     if (!vCard.jid)
       return null;
-    var v = stanza.getChildren('vCard');
+    var v = aStanza.getChildren('vCard');
     if (v.length <= 0)
       return null;
     v = v[0];
@@ -175,21 +175,21 @@ const Stanza = {
   },
 
   /* Create a message stanza */
-  message: function(to, attr, data) {
-    if (!attr)
-      attr = {};
+  message: function(aTo, aAttr, aData) {
+    if (!aAttr)
+      aAttr = {};
 
-    attr['to'] = to;
+    aAttr['to'] = aTo;
 
-    return Stanza.node('message', null, attr, data);
+    return Stanza.node('message', null, aAttr, aData);
   },
 
   /* Parse a message stanza */
-  parseMessage: function(stanza) {
+  parseMessage: function(aStanza) {
     var m = {from: null,
              body: ''};
-    m.from = parseJID(stanza.attributes['from']);
-    var b = stanza.getChildren('body');
+    m.from = parseJID(aStanza.attributes['from']);
+    var b = aStanza.getChildren('body');
     if (b.length > 0)
       m.body = b[0].innerXML();
 
@@ -197,49 +197,49 @@ const Stanza = {
   },
 
   /* Create a iq stanza */
-  iq: function(type, id, to, data) {
+  iq: function(aType, aId, aTo, aData) {
     var n = new XMLNode(null, null, 'iq', 'iq', null)
-    if (id)
-      n.attributes['id'] = id;
-    if (to)
-      n.attributes['to'] = to;
+    if (aId)
+      n.attributes['id'] = aId;
+    if (aTo)
+      n.attributes['to'] = aTo;
 
-    n.attributes['type'] = type;
+    n.attributes['type'] = aType;
 
-    Stanza._addChildren(n, data);
+    Stanza._addChildren(n, aData);
 
     return n;
   },
 
   /* Create a XML node */
-  node: function(name, ns, attr, data) {
-    var n = new XMLNode(null, ns, name, name, null);
-    for (var at in attr) {
-      n.attributes[at] = attr[at];
+  node: function(aName, aNs, aAttr, aData) {
+    var n = new XMLNode(null, aNs, aName, aName, null);
+    for (var at in aAttr) {
+      n.attributes[at] = aAttr[at];
     }
 
-    Stanza._addChildren(n, data);
+    Stanza._addChildren(n, aData);
 
     return n;
   },
 
-  _addChild: function(node, data) {
-    if (typeof(data) == 'string') {
-      node.addText(data);
+  _addChild: function(aNode, aData) {
+    if (typeof(aData) == 'string') {
+      aNode.addText(aData);
     }
     else {
-      node.addChild(data);
-      data.parent_node = data;
+      aNode.addChild(aData);
+      aData.parent_node = aData;
     }
   },
 
-  _addChildren: function(node, data) {
-    if (typeof(data) != 'string' && typeof(data.length) != 'undefined') {
-      for (var i = 0; i < data.length; ++i)
-        Stanza._addChild(node, data[i]);
+  _addChildren: function(aNode, aData) {
+    if (typeof(aData) != 'string' && typeof(aData.length) != 'undefined') {
+      for (var i = 0; i < aData.length; ++i)
+        Stanza._addChild(aNode, aData[i]);
     }
     else {
-      Stanza._addChild(node, data);
+      Stanza._addChild(aNode, aData);
     }
   },
 };
@@ -254,8 +254,8 @@ TextNode.prototype = {
   get type() "text",
 
   /* Returns a indented XML */
-  convertToString: function(indent) {
-    return indent + this.text + '\n';
+  convertToString: function(aIndent) {
+    return aIndent + this.text + '\n';
   },
 
   /* Returns the plain XML */
@@ -270,18 +270,18 @@ TextNode.prototype = {
 };
 
 /* XML node */
-function XMLNode(parent_node, uri, localName, qName, attributes) {
-  this.parent_node = parent_node;
-  this.uri = uri;
-  this.localName = localName;
-  this.qName = qName;
+function XMLNode(aParentNode, aUri, aLocalName, aQName, aAttr) {
+  this.parent_node = aParentNode;
+  this.uri = aUri;
+  this.localName = aLocalName;
+  this.qName = aQName;
   this.attributes = {};
   this.children = [];
   this.cmap = {};
 
-  if (attributes) {
-    for (var i = 0; i < attributes.length; ++i) {
-      this.attributes[attributes.getQName(i)] = attributes.getValue(i);
+  if (aAttr) {
+    for (var i = 0; i < aAttr.length; ++i) {
+      this.attributes[aAttr.getQName(i)] = aAttr.getValue(i);
     }
   }
 }
@@ -290,31 +290,31 @@ XMLNode.prototype = {
   get type() "node",
 
   /* Add a new child node */
-  addChild: function(node) {
-    if (this.cmap[node.qName])
-     this.cmap[node.qName].push(node);
+  addChild: function(aNode) {
+    if (this.cmap[aNode.qName])
+     this.cmap[aNode.qName].push(aNode);
     else
-     this.cmap[node.qName] = [node];
+     this.cmap[aNode.qName] = [aNode];
 
-    this.children.push(node);
+    this.children.push(aNode);
   },
 
   /* Add text node */
-  addText: function(text) {
-    this.children.push(new TextNode(text));
+  addText: function(aText) {
+    this.children.push(new TextNode(aText));
   },
 
   /* Get an element inside the node using a query */
-  getElement: function(query) {
-   if (query.length == 0)
+  getElement: function(aQuery) {
+   if (aQuery.length == 0)
      return null;
-   if (this.qName != query[0])
+   if (this.qName != aQuery[0])
      return null;
-   if (query.length == 1)
+   if (aQuery.length == 1)
      return this;
 
-   var c = this.getChildren(query[1]);
-   var nq = query.slice(1);
+   var c = this.getChildren(aQuery[1]);
+   var nq = aQuery.slice(1);
    for (var i = 0; i < c.length; ++i) {
      var n = c[i].getElement(nq);
      if (n)
@@ -325,16 +325,16 @@ XMLNode.prototype = {
   },
 
   /* Get all elements matchign the query */
-  getElements: function(query) {
-   if (query.length == 0)
+  getElements: function(aQuery) {
+   if (aQuery.length == 0)
      return [];
-   if (this.qName != query[0])
+   if (this.qName != aQuery[0])
      return [];
-   if (query.length == 1)
+   if (aQuery.length == 1)
      return [this];
 
-   var c = this.getChildren(query[1]);
-   var nq = query.slice(1);
+   var c = this.getChildren(aQuery[1]);
+   var nq = aQuery.slice(1);
    var res = [];
    for (var i = 0; i < c.length; ++i) {
      var n = c[i].getElements(nq);
@@ -345,9 +345,9 @@ XMLNode.prototype = {
   },
 
   /* Get immediate children by the node name */
-  getChildren: function(name) {
-    if (this.cmap[name])
-      return this.cmap[name];
+  getChildren: function(aName) {
+    if (this.cmap[aName])
+      return this.cmap[aName];
     return [];
   },
 
@@ -362,16 +362,16 @@ XMLNode.prototype = {
   },
 
   /* Returns indented XML */
-  convertToString: function(indent) {
-    if (!indent)
-      indent = '';
+  convertToString: function(aIndent) {
+    if (!aIndent)
+      aIndent = '';
 
-    var s = indent + '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>\n';
+    var s = aIndent + '<' + this.qName + ' ' + this._getXmlns() + ' ' + this._getAttributeText() + '>\n';
 
     for (var i = 0; i < this.children.length; ++i) {
-      s += this.children[i].convertToString(indent + ' ');
+      s += this.children[i].convertToString(aIndent + ' ');
     }
-    s += indent + '</' + this.qName + '>\n';
+    s += aIndent + '</' + this.qName + '>\n';
 
     return s;
   },

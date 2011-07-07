@@ -181,12 +181,12 @@ Account.prototype = {
 
 
   /* Called whenever a stanza is received */
-  onXmppStanza: function(name, stanza) {
+  onXmppStanza: function(aName, aStanza) {
   },
 
   /* Called when a presence stanza is received */
-  onPresenceStanza: function(stanza) {
-    var from = stanza.attributes['from'];
+  onPresenceStanza: function(aStanza) {
+    var from = aStanza.attributes['from'];
     from = parseJID(from).jid;
     debug(from);
     var buddy = this._buddies[normalize(from)];
@@ -195,14 +195,14 @@ Account.prototype = {
       return;
     }
 
-    var p = Stanza.parsePresence(stanza);
+    var p = Stanza.parsePresence(aStanza);
     debug(buddy._buddy.id);
     buddy.setStatus(p.show, p.status);
   },
 
   /* Called when a message stanza is received */
-  onMessageStanza: function(stanza) {
-    var m = Stanza.parseMessage(stanza);
+  onMessageStanza: function(aStanza) {
+    var m = Stanza.parseMessage(aStanza);
     var norm = normalize(m.from.jid);
     if (!this.createConversation(norm))
       return;
@@ -219,10 +219,10 @@ Account.prototype = {
 
   /* Callbacks for Query stanzas */
   /* When a vCard is recieved */
-  onVCard: function(name, stanza) {
+  onVCard: function(aName, aStanza) {
     var vCard = null;
     try {
-      vCard = Stanza.parseVCard(stanza);
+      vCard = Stanza.parseVCard(aStanza);
     } catch(e) {
       debug(e);
     }
@@ -241,8 +241,8 @@ Account.prototype = {
   },
 
   /* When the roster is received */
-  onRoster: function(name, stanza) {
-    var q = stanza.getChildren('query');
+  onRoster: function(aName, aStanza) {
+    var q = aStanza.getChildren('query');
     for (var i = 0; i < q.length; ++i) {
       if (q[i].uri == $NS.roster) {
         var items = q[i].getChildren('item');

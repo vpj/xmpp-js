@@ -130,7 +130,7 @@ XMPPConnection.prototype = {
   },
 
   /* When there is a problem with certificates */
-  onCertProblem: function(socketInfo, status, targetSite) {
+  onCertProblem: function(aSocketInfo, aStatus, aTargetSite) {
     /* Open the add excetion dialog and reconnect
       Should this be part of the socket.jsm since
       all plugins using socket.jsm will need it? */
@@ -164,8 +164,8 @@ XMPPConnection.prototype = {
   },
 
   /* Private methods */
-  setState: function(state) {
-    this._state = state;
+  setState: function(aState) {
+    this._state = aState;
   },
 
   _addCertificate: function() {
@@ -202,9 +202,9 @@ XMPPConnection.prototype = {
 
   /* Callbacks from parser */
   /* A stanza received */
-  onXmppStanza: function(name, stanza) {
-    this.debug(stanza.convertToString());
-    this._listener.onXmppStanza(name, stanza);
+  onXmppStanza: function(aName, aStanza) {
+    this.debug(aStanza.convertToString());
+    this._listener.onXmppStanza(aName, aStanza);
   },
 
   /* Stream started */
@@ -217,10 +217,11 @@ XMPPConnection.prototype = {
     this.setState(CONNECTION_STATE.stream_ended);
   },
 
-  onError: function(error, exception) {
-    Cu.reportError(error + ": " + exception);
-    if (error != 'parse-warning' && error != 'parsing-characters') {
-      this._listener.onError(error, exception);
+  onError: function(aError, aException) {
+    if(aError != 'parsing-characters')
+      Cu.reportError(aError + ": " + aException);
+    if (aError != 'parse-warning' && aError != 'parsing-characters') {
+      this._listener.onError(aError, aException);
     }
   },
 
@@ -233,11 +234,11 @@ XMPPConnection.prototype = {
   },
 };
 
-function readInputStreamToString(stream, count) {
+function readInputStreamToString(aStream, aCount) {
   var sstream = Cc['@mozilla.org/scriptableinputstream;1']
     .createInstance(Ci.nsIScriptableInputStream);
-  sstream.init(stream);
-  return sstream.read(count);
+  sstream.init(aStream);
+  return sstream.read(aCount);
 }
 
 function createParser(aListener) {
@@ -245,20 +246,20 @@ function createParser(aListener) {
               .createInstance(Ci.nsISAXXMLReader);
 
   parser.errorHandler = {
-    error: function(locator, error) {
-      aListener.onError('parse-error', error);
+    error: function(aLocator, aError) {
+      aListener.onError('parse-error', aError);
     },
 
-    fatelError: function(locator, error) {
-      aListener.onError('parse-fatel-error', error);
+    fatelError: function(aLocator, aError) {
+      aListener.onError('parse-fatel-error', aError);
     },
 
-    ignorableWarning: function(locator, error) {
-      aListener.onError('parse-warning', error);
+    ignorableWarning: function(aLocator, aError) {
+      aListener.onError('parse-warning', aError);
     },
 
-    QueryInterface: function(iid) {
-      if (!iid.equals(Ci.nsiSupports) && !iid.equals(Ci.nsiISAXErrorHandler))
+    QueryInterface: function(aInterfaceId) {
+      if (!aInterfaceId.equals(Ci.nsiSupports) && !aInterfaceId.equals(Ci.nsiISAXErrorHandler))
         throw Cr.NS_ERROR_NO_INTERFACE;
       return this;
     }
@@ -273,13 +274,13 @@ function createParser(aListener) {
       aListener.onEndStream();
     },
 
-    startElement: function(uri, localName, qName, attributes) {
-      if (qName == 'stream:stream') {
-        Cu.reportError('stream:stream ignoring');
+    startElement: function(aUri, aLocalName, aQName, aAttributes) {
+      if (aQName == 'stream:stream') {
+//        Cu.reportError('stream:stream ignoring');
         return;
       }
 
-      var node = new XMLNode(this._node, uri, localName, qName, attributes);
+      var node = new XMLNode(this._node, aUri, aLocalName, aQName, aAttributes);
       if (this._node) {
         this._node.addChild(node);
       }
@@ -287,42 +288,42 @@ function createParser(aListener) {
       this._node = node;
     },
 
-    characters: function(value) {
+    characters: function(aCharacters) {
       if (!this._node) {
-        aListener.onError('parsing-characters', 'No parent for characters: ' + value);
+        aListener.onError('parsing-characters', 'No parent for characters: ' + aCharacters);
         return;
       }
 
-      this._node.addText(value);
+      this._node.addText(aCharacters);
     },
 
-    endElement: function(uri, localName, qName) {
-      if (qName == 'stream:stream') {
+    endElement: function(aUri, aLocalName, aQName) {
+      if (aQName == 'stream:stream') {
         return;
       }
 
       if (!this._node) {
-        aListener.onError('parsing-node', 'No parent for node : ' + localName);
+        aListener.onError('parsing-node', 'No parent for node : ' + aLocalName);
         return;
       }
 
       if (this._node.isXmppStanza()) {
-        aListener.onXmppStanza(qName, this._node);
+        aListener.onXmppStanza(aQName, this._node);
       }
 
       this._node = this._node.parent_node;
     },
 
-    processingInstruction: function(target, data) {},
+    processingInstruction: function(aTarget, aData) {},
 
-    ignorableWhitespace: function(whitespace) {},
+    ignorableWhitespace: function(aWhitespace) {},
 
-    startPrefixMapping: function(prefix, uri) {},
+    startPrefixMapping: function(aPrefix, aUri) {},
 
-    endPrefixMapping: function(prefix) {},
+    endPrefixMapping: function(aPrefix) {},
 
-    QueryInterface: function(iid) {
-      if (!iid.equals(Ci.nsISupports) && !iid.equals(Ci.nsISAXContentHandler))
+    QueryInterface: function(aInterfaceId) {
+      if (!aInterfaceId.equals(Ci.nsISupports) && !aInterfaceId.equals(Ci.nsISAXContentHandler))
         throw Cr.NS_ERROR_NO_INTERFACE;
       return this;
     }

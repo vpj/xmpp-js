@@ -34,20 +34,20 @@ function StanzaEventManager() {
 }
 
 StanzaEventManager.prototype = {
-  add: function(id, callback, obj) {
-    if (!obj)
-      obj = callback;
-    this.handlers[id] = {cb: callback, obj: obj}; 
+  add: function(aId, aCallback, aObj) {
+    if (!aObj)
+      aObj = aCallback;
+    this.handlers[aId] = {cb: aCallback, obj: aObj};
   },
 
-  remove: function(id) {
-    delete this.handlers[id];
+  remove: function(aId) {
+    delete this.handlers[aId];
   },
 
-  exec: function(id, name, stanza) {
-    if (!this.handlers[id])
+  exec: function(aId, aName, aStanza) {
+    if (!this.handlers[aId])
       return;
 
-    this.handlers[id].cb.call(this.handlers[id].obj, name, stanza);
+    this.handlers[aId].cb.call(this.handlers[aId].obj, aName, aStanza);
   }
 };

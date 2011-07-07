@@ -93,12 +93,12 @@ XMPPSession.prototype = {
    * Can set a callback if required, which will be called
    * when the server responds to the stanza with
    * a stanza of the same id. */
-  sendStanza: function(stanza, callback, obj) {
-    stanza.attributes['id'] = this.id();
-    if (callback)
-      this._events.add(stanza.attributes.id, callback, obj);
-    this.send(stanza.getXML());
-    return stanza.attributes.id;
+  sendStanza: function(aStanza, aCallback, aObject) {
+    aStanza.attributes['id'] = this.id();
+    if (aCallback)
+      this._events.add(aStanza.attributes.id, aCallback, aObject);
+    this.send(aStanza.getXML());
+    return aStanza.attributes.id;
   },
 
   /* Gives an unique id */
@@ -122,9 +122,9 @@ XMPPSession.prototype = {
   },
 
   /* Set the session state */
-  setState: function(state) {
-    this._state = state;
-    this.debug("state = " + state);
+  setState: function(aState) {
+    this._state = aState;
+    this.debug("state = " + aState);
   },
 
 
@@ -136,25 +136,25 @@ XMPPSession.prototype = {
   },
 
   /* The conenction got disconnected */
-  onDisconnected: function(error, exception) {
-    this._listener.onError('disconnected-' + error, 'Disconnected: ' + exception);
+  onDisconnected: function(aError, aException) {
+    this._listener.onError('disconnected-' + aError, 'Disconnected: ' + aException);
   },
 
   /* On error in the connection */
-  onError: function(error, exception) {
-    this._listener.onError('connection-' + error, exception);
+  onError: function(aError, aException) {
+    this._listener.onError('connection-' + aError, aException);
   },
 
   /* When a Stanza is received */
-  onXmppStanza: function(name, stanza) {
-    if (name == 'failure') {
+  onXmppStanza: function(aName, aStanza) {
+    if (aName == 'failure') {
       this._listener.onError('failure', 'Not authorised');
       return;
     }
 
     switch(this._state) {
       case STATE.initializing_stream:
-        var starttls = this._isStartTLS(stanza);
+        var starttls = this._isStartTLS(aStanza);
         if (this._connection.isStartTLS) {
           if (starttls == 'required' || starttls == 'optional') {
             var n =  Stanza.node('starttls', $NS.tls, {}, []);
@@ -168,7 +168,7 @@ XMPPSession.prototype = {
           return;
         }
 
-        var mechs = this._getMechanisms(stanza);
+        var mechs = this._getMechanisms(aStanza);
         this.debug(mechs);
         for (var i = 0; i < mechs.length; ++i) {
           if (this._authMechs[mechs[i]]) {
@@ -186,7 +186,7 @@ XMPPSession.prototype = {
 
       case STATE.auth_starting:
         try {
-          var res = this._auth.next(stanza);
+          var res = this._auth.next(aStanza);
         } catch(e) {
           this._listener.onError('auth-mech', 'Authentication failure: ' + e);
         }
@@ -219,7 +219,7 @@ XMPPSession.prototype = {
         break;
 
       case STATE.auth_bind:
-        var jid = stanza.getElement(['iq', 'bind', 'jid']);
+        var jid = aStanza.getElement(['iq', 'bind', 'jid']);
         this.debug("jid = " + jid.innerXML());
         this._fullJID = jid.innerXML();
         this._JID = parseJID(this._fullJID);
@@ -236,15 +236,15 @@ XMPPSession.prototype = {
         break;
 
       case STATE.session_started:
-        if (name == 'presence')
-          this._listener.onPresenceStanza(stanza);
-        else if (name == 'message')
-          this._listener.onMessageStanza(stanza);
+        if (aName == 'presence')
+          this._listener.onPresenceStanza(aStanza);
+        else if (aName == 'message')
+          this._listener.onMessageStanza(aStanza);
         else
-          this._listener.onXmppStanza(name, stanza);
+          this._listener.onXmppStanza(aName, aStanza);
 
-        if (stanza.attributes.id)
-          this._events.exec(stanza.attributes.id, name, stanza);
+        if (aStanza.attributes.id)
+          this._events.exec(aStanza.attributes.id, aName, aStanza);
 
         break;
     }
@@ -252,10 +252,10 @@ XMPPSession.prototype = {
 
   /* Private methods */
   /* Get supported authentication mechanisms */
-  _getMechanisms: function(stanza) {
-    if (stanza.localName != 'features')
+  _getMechanisms: function(aStanza) {
+    if (aStanza.localName != 'features')
       return [];
-    var mechs = stanza.getChildren('mechanisms');
+    var mechs = aStanza.getChildren('mechanisms');
     var res = [];
     for (var i = 0; i < mechs.length; ++i) {
       var mech = mechs[i].getChildren('mechanism');
@@ -267,12 +267,12 @@ XMPPSession.prototype = {
   },
 
   /* Check is starttls is required or optional */
-  _isStartTLS: function(stanza) {
-    if (stanza.localName != 'features')
+  _isStartTLS: function(aStanza) {
+    if (aStanza.localName != 'features')
       return '';
     var required = false;
     var optional = false;
-    var starttls = stanza.getChildren('starttls');
+    var starttls = aStanza.getChildren('starttls');
     for (var i = 0; i < starttls.length; ++i) {
       for (var j = 0; j < starttls[i].children.length; ++j) {
         if (starttls[i].children[j].localName == 'required')
