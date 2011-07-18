@@ -394,7 +394,7 @@ function GTalkAccount(aProtoInstance, aKey, aName)
 GTalkAccount.prototype = {
   __proto__: Account.prototype,
   _supportSharedStatus: false,
-  _sharedStatus: null,
+  _supportMailNotifications: false,
 
   _rosterReceived: function() {
     let s = Stanza.iq("get", null, "gmail.com",
@@ -407,6 +407,8 @@ GTalkAccount.prototype = {
     for(var i = 0; i < features.length; ++i) {
       if(features[i].attributes["var"] == "google:shared-status")
         this._supportSharedStatus = true;
+      if(features[i].attributes["var"] == "google:mail:notify")
+        this._supportMailNotifications = true;
     }
 
     this._setInitialStatus();
@@ -415,6 +417,21 @@ GTalkAccount.prototype = {
       let s = Stanza.iq("get", null, this._JID.jid,
            Stanza.node("query", "google:shared-status", {version: 2}, []));
       this._connection.sendStanza(s, this.onSharedStatus, this);
+    }
+
+    if(this._supportMailNotifications) {
+      let s = Stanza.iq("get", null, this._JID.jid,
+           Stanza.node("query", "google:mail:notify", {"newer-than-time": (new Date()).getTime() - 100 * 3600 * 1000}, []));
+      this._connection.sendStanza(s);
+
+      let u = Stanza.iq("get", null, this._JID.jid,
+           Stanza.node("usersetting", "google:setting", {}, []));
+      this._connection.sendStanza(u);
+
+      let t = Stanza.iq("set", null, this._JID.jid,
+           Stanza.node("usersetting", "google:setting", {},
+            Stanza.node("mailnotifications", null, {value: true}, [])));
+      this._connection.sendStanza(t);
     }
   },
 
