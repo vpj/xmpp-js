@@ -251,9 +251,17 @@ Account.prototype = {
       }
     }
 
+    this._rosterReceived();
+  },
+
+  _rosterReceived: function() {
+    this._setInitialStatus();
+  },
+
+  _setInitialStatus: function() {
     let s = Stanza.presence({"xml:lang": "en"},
-         [Stanza.node("show", null, null, "dnd"),
-          Stanza.node("status", null, null, "Whazzaaa")]);
+         [Stanza.node("show", null, null, "chat"),
+          Stanza.node("status", null, null, "")]);
     this._connection.sendStanza(s);
   },
 
@@ -347,26 +355,112 @@ Account.prototype = {
 
   /* Set the user statue on the server */
   _statusChanged: function(aStatusType, aMsg) {
-    let s = "";
+    let show = "";
 
     aMsg = aMsg || "";
     if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
-      s = "chat";
+      show = "chat";
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
-      s = "dnd";
+      show = "dnd";
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
-      s = "away";
+      show = "away";
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
       //TODO: disconnect
-      s = "xa";
+      show = "xa";
     }
     let s = Stanza.presence({"xml:lang": "en"},
-         [Stanza.node("show", null, null, s),
+         [Stanza.node("show", null, null, show),
           Stanza.node("status", null, null, aMsg)]);
     this._connection.sendStanza(s);
+  },
+};
+
+function GTalkAccount(aProtoInstance, aKey, aName)
+{
+  this._init(aProtoInstance, aKey, aName);
+
+  /* A map of on going conversations */
+  this._conv = {},
+
+  /* Map of buddies */
+  this._buddies = {},
+
+  Services.obs.addObserver(this, "status-changed", false);
+}
+
+GTalkAccount.prototype = {
+  __proto__: Account.prototype,
+  _supportSharedStatus: false,
+  _sharedStatus: null,
+
+  _rosterReceived: function() {
+    let s = Stanza.iq("get", null, "gmail.com",
+         Stanza.node("query", $NS.disco_info, {}, []));
+    this._connection.sendStanza(s, this.onDiscoItems, this);
+  },
+
+  onDiscoItems: function(aName, aStanza) {
+    let features = aStanza.getElements(["iq", "query", "feature"]);
+    for(var i = 0; i < features.length; ++i) {
+      if(features[i].attributes["var"] == "google:shared-status")
+        this._supportSharedStatus = true;
+    }
+
+    this._setInitialStatus();
+
+    if(this._supportSharedStatus) {
+      let s = Stanza.iq("get", null, this._JID.jid,
+           Stanza.node("query", "google:shared-status", {version: 2}, []));
+      this._connection.sendStanza(s, this.onSharedStatus, this);
+    }
+  },
+
+  onSharedStatus: function(aName, aStanza) {
+    /* Append to list of statuses */
+    let s = Stanza.iq("set", null, null,
+         Stanza.node("query", "google:shared-status", {version: 2},
+           [Stanza.node("status", null, {}, ""),
+            Stanza.node("show", null, {}, "default"),
+            Stanza.node("invisible", null, {value:false}, [])]));
+    this._connection.sendStanza(s);
+  },
+
+  /* Set the user statue on the server */
+  _statusChanged: function(aStatusType, aMsg) {
+    let show = "";
+    let invisible = false;
+
+    aMsg = aMsg || "";
+    if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
+      show = "chat";
+    }
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
+      show = "dnd";
+    }
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
+      show = "away";
+    }
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+      show = "chat";
+      invisible = true;
+    }
+    if(!this._supportSharedStatus) {
+      let s = Stanza.presence({"xml:lang": "en"},
+           [Stanza.node("show", null, null, show),
+            Stanza.node("status", null, null, aMsg)]);
+      this._connection.sendStanza(s);
+    }
+    else {
+      let s = Stanza.iq("set", null, null,
+           Stanza.node("query", "google:shared-status", {version: 2},
+             [Stanza.node("status", null, {}, aMsg),
+              Stanza.node("show", null, {}, show),
+              Stanza.node("invisible", null, {value:invisible}, [])]));
+      this._connection.sendStanza(s);
+    }
   },
 };
 
@@ -393,5 +487,28 @@ XMPPProtocol.prototype = {
   }
 };
 
-const NSGetFactory = XPCOMUtils.generateNSGetFactory([XMPPProtocol]);
+function GTalkProtocol() {
+}
+
+GTalkProtocol.prototype = {
+  __proto__: GenericProtocolPrototype,
+  get name() "gtalk-js",
+  get noPassword() false,
+  getAccount: function(aKey, aName) new GTalkAccount(this, aKey, aName),
+  classID: Components.ID("{c4eb26eb-eaa2-441f-a695-9512199bdbed}"),
+/*
+  usernameSplits: [
+    {label: "Server", separator: "@", defaultValue: "irc.freenode.com",
+     reverse: true}
+  ],
+*/
+  options: {
+    "server": {label: "Server", default: "talk.google.com"},
+    "port": {label: "Port", default: 443},
+    "ssl": {label: "Use SSL", default: true},
+    "starttls": {label: "Use StartTLS", default: false},
+  }
+};
+
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([GTalkProtocol, XMPPProtocol]);
 
