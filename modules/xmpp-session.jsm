@@ -95,7 +95,8 @@ XMPPSession.prototype = {
    * when the server responds to the stanza with
    * a stanza of the same id. */
   sendStanza: function(aStanza, aCallback, aObject) {
-    aStanza.attributes["id"] = this.id();
+    if(!aStanza.attributes.hasOwnProperty("id"))
+     aStanza.attributes["id"] = this.id();
     if (aCallback)
       this._events.add(aStanza.attributes.id, aCallback, aObject);
     this.send(aStanza.getXML());
@@ -243,11 +244,15 @@ XMPPSession.prototype = {
           this._listener.onPresenceStanza(aStanza);
         else if (aName == "message")
           this._listener.onMessageStanza(aStanza);
+        else if (aName == "iq")
+          this._listener.onIQStanza(aName, aStanza);
         else
           this._listener.onXmppStanza(aName, aStanza);
 
-        if (aStanza.attributes.id)
+        if (aStanza.attributes.id) {
           this._events.exec(aStanza.attributes.id, aName, aStanza);
+          this._events.remove(aStanza.attributes.id);
+        }
 
         break;
     }

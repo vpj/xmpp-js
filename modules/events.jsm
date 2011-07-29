@@ -25,19 +25,30 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/* TODO: Events if certain elements are present */
 var EXPORTED_SYMBOLS = ["StanzaEventManager"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 function StanzaEventManager() {
-  this.handlers = [];
+  this.handlers = {};
+  /*
+  this.stanzaHandlers = {};
+  this.stanzaHandlerNodes = {};
+  this.stanzaHandlerId = 0;
+  */
 }
 
 StanzaEventManager.prototype = {
-  add: function(aId, aCallback, aObj) {
+  add: function(aId, aCallback, aObj/*, aNodes*/) {
     if (!aObj)
       aObj = aCallback;
+//    if(!aNodes) {
     this.handlers[aId] = {cb: aCallback, obj: aObj};
+//    } else {
+//     this.stanzaHandlers[this.stanzaHandlerId] = {cb: aCallback, obj: aObj};
+//     this.stanzaHandlerNodes[this.stanzaHandlerId] = ;
+//    }
   },
 
   remove: function(aId) {
@@ -51,3 +62,4 @@ StanzaEventManager.prototype = {
     this.handlers[aId].cb.call(this.handlers[aId].obj, aName, aStanza);
   }
 };
+

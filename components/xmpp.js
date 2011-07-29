@@ -182,6 +182,10 @@ Account.prototype = {
   onXmppStanza: function(aName, aStanza) {
   },
 
+  /* Called when a iq stanza is received */
+  onIQStanza: function(aName, aStanza) {
+  },
+
   /* Called when a presence stanza is received */
   onPresenceStanza: function(aStanza) {
     let from = aStanza.attributes["from"];
@@ -395,6 +399,8 @@ GTalkAccount.prototype = {
   __proto__: Account.prototype,
   _supportSharedStatus: false,
   _supportMailNotifications: false,
+  _mailConv: null,
+  _tid: null,
 
   _rosterReceived: function() {
     let s = Stanza.iq("get", null, "gmail.com",
@@ -404,7 +410,7 @@ GTalkAccount.prototype = {
 
   onDiscoItems: function(aName, aStanza) {
     let features = aStanza.getElements(["iq", "query", "feature"]);
-    for(var i = 0; i < features.length; ++i) {
+    for(let i = 0; i < features.length; ++i) {
       if(features[i].attributes["var"] == "google:shared-status")
         this._supportSharedStatus = true;
       if(features[i].attributes["var"] == "google:mail:notify")
@@ -420,18 +426,39 @@ GTalkAccount.prototype = {
     }
 
     if(this._supportMailNotifications) {
-      let s = Stanza.iq("get", null, this._JID.jid,
-           Stanza.node("query", "google:mail:notify", {"newer-than-time": (new Date()).getTime() - 100 * 3600 * 1000}, []));
-      this._connection.sendStanza(s);
-
-      let u = Stanza.iq("get", null, this._JID.jid,
-           Stanza.node("usersetting", "google:setting", {}, []));
-      this._connection.sendStanza(u);
+      this._getMail();
 
       let t = Stanza.iq("set", null, this._JID.jid,
            Stanza.node("usersetting", "google:setting", {},
             Stanza.node("mailnotifications", null, {value: true}, [])));
       this._connection.sendStanza(t);
+    }
+  },
+
+  _getMail: function(tid) {
+    let s = Stanza.iq("get", "mail-request-1", this._JID.jid,
+         Stanza.node("query", "google:mail:notify", {}, []));
+    this._connection.sendStanza(s, this.newMail, this);
+  },
+
+  newMail: function(aName, aStanza) {
+    let mail = aStanza.getElements(["iq", "mailbox", "mail-thread-info"]);
+    for(let i = mail.length - 1; i >= 0; --i) {
+      /* TODO: notify mail */
+      dump(mail[i].convertToString());
+      if(!this._tid || (this._tid < mail[i].attributes.tid))
+        this._tid = mail[i].attributes.tid;
+      dump(this._tid);
+    }
+  },
+
+  onIQStanza: function(aName, aStanza) {
+    if(aStanza.attributes["type"] == "set") {
+      if(aStanza.getChildren("new-mail").length > 0) {
+        let s = Stanza.iq("result", aStanza.attributes.id, this._JID.jid, []);
+        this._connection.sendStanza(s);
+        this._getMail();
+      }
     }
   },
 
