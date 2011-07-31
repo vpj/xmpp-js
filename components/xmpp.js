@@ -34,38 +34,14 @@ Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-session.jsm");
+Cu.import("resource://xmpp-js/xmppProtoHelper.jsm");
 
 function Conversation(aAccount, aBuddy)
 {
-  this.buddy = aBuddy;
-  this.account = aAccount;
-  this._name = aBuddy.contactDisplayName;
-  this._observers = [];
-  this._opened = false;
-  Services.conversations.addConversation(this);
+  this._init(aAccount, aBuddy);
 }
 
-Conversation.prototype = {
-  __proto__: GenericConvIMPrototype,
-
-  /* Called when the user enters a chat message */
-  sendMsg: function (aMsg) {
-    this.account.sendMessage(this.buddy.userName, aMsg);
-    this.writeMessage("You", aMsg, {outgoing: true});
-  },
-
-  /* Called by the account when a messsage is received from the buddy */
-  incomingMessage: function(aMsg) {
-    this.writeMessage(this.buddy.contactDisplayName, aMsg, {incoming: true});
-  },
-
-  /* Called when the user closed the conversation */
-  close: function() {
-    Services.obs.notifyObservers(this, "closing-conversation", null);
-    Services.conversations.removeConversation(this);
-    this.account.removeConversation(this.buddy.normalizedName);
-  },
-};
+Conversation.prototype = XMPPConversationPrototype;
 
 function TooltipInfo(aType, aLabel, aValue) {
   this._init(aType, aLabel, aValue);
@@ -77,330 +53,59 @@ function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
 }
 
-AccountBuddy.prototype = {
-  __proto__: GenericAccountBuddyPrototype,
-
-  /* Returns a list of TooltipInfo objects to be displayed when the user hovers over the buddy */
-  getTooltipInfo: function() {
-    return null;
-    //return new nsSimpleEnumerator([new TooltipInfo("pair", "name", "vpj")]);
-  },
-
-  /* Display name of the buddy */
-  get contactDisplayName() this.buddy.contact.displayName || this.displayName,
-
-  /* Called when the user wants to chat with the buddy */
-  createConversation: function() {
-    return this._account.createConversation(this.normalizedName);
-  }
-};
-
-function Account(aProtoInstance, aKey, aName)
+AccountBuddy.prototype = XMPPAccountBuddyPrototype;
+  
+function XMPPAccount(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
-
-  /* A map of on going conversations */
-  this._conv = {},
-
-  /* Map of buddies */
-  this._buddies = {},
-
-  Services.obs.addObserver(this, "status-changed", false);
 }
 
-Account.prototype = {
-  __proto__: GenericAccountPrototype,
+XMPPAccount.prototype = {
+  __proto__: XMPPAccountPrototype,
 
-  _jid: null,
-  _password: null,
-  _server: null,
-  _port: null,
-  _connection: null, /* XMPP Connection */
-  _security: null,
-
-  /* Events */
-  observe: function(aSubject, aTopic, aMsg) {
-    this._statusChanged(aSubject.currentStatusType, aSubject.currentStatusMessage);
+  getConnectionParameters: function() {
+    return {server: this.getString("server"),
+            port: this.getInt("port"),
+            ssl: this.getBool("ssl"),
+            starttls: this.getBool("starttls")};
   },
 
-  /* GenericAccountPrototype events */
-  /* Connect to the server */
-  connect: function() {
-    this.base.connecting();
-
-    this._jid = this.name;
-    this._JID = parseJID(this._jid);
-    this._password = this.password;
-    this._server = this.getString("server");
-    this._port = this.getInt("port");
-    this._security = [];
-    if (this.getBool("ssl")) {
-      this._security.push("ssl");
-    }
-    if (this.getBool("starttls")) {
-      this._security.push("starttls");
-    }
-
-    this._connection =
-        new XMPPSession(this._server, this._port, this._security,
-        this._JID, this._JID.domain, this._password,
-        this);
-
-    this._connection.connect();
+  _constructConversation: function(buddy) {
+    return new Conversation(this, buddy);
   },
 
-  /* Disconnect from the server */
-  disconnect: function(aSilent) {
-    this._disconnect();
-    this.gotDisconnected();
-  },
-
-  /* Loads a buddy from the local storage.
-   * Called for each buddy locally stored before connecting
-   * to the server. */
-  loadBuddy: function(aBuddy, aTag) {
-    let buddy = new AccountBuddy(this, aBuddy, aTag);
-    this._buddies[buddy.normalizedName] = buddy;
-    debug("loadBuddy " + buddy.normalizedName);
-    return buddy;
-  },
-
-  /* XMPPSession events */
-  /* Called when the XMPP session is started */
-  onConnection: function() {
-    this.base.connected();
-
-    let s = Stanza.iq("get", null, null,
-        Stanza.node("query", $NS.roster, {}, []));
-
-    /* Set the call back onRoster */
-    this._connection.sendStanza(s, this.onRoster, this);
-  },
-
-
-  /* Called whenever a stanza is received */
-  onXmppStanza: function(aName, aStanza) {
-  },
-
-  /* Called when a iq stanza is received */
-  onIQStanza: function(aName, aStanza) {
-  },
-
-  /* Called when a presence stanza is received */
-  onPresenceStanza: function(aStanza) {
-    let from = aStanza.attributes["from"];
-    from = parseJID(from).jid;
-    debug(from);
-    let buddy = this._buddies[normalize(from)];
-    if (!buddy) {
-      debug("buddy not present: " + from);
-      return;
-    }
-
-    let p = Stanza.parsePresence(aStanza);
-    debug(buddy._buddy.id);
-    buddy.setStatus(p.show, p.status);
-  },
-
-  /* Called when a message stanza is received */
-  onMessageStanza: function(aStanza) {
-    let m = Stanza.parseMessage(aStanza);
-    let norm = normalize(m.from.jid);
-    if (!this.createConversation(norm))
-      return;
-
-    this._conv[norm].incomingMessage(m.body);
-  },
-
-  /* Called when there is an error in the xmpp session */
-  onError: function(aError, aException) {
-    Cu.reportError(aException);
-    this._disconnect();
-    this.gotDisconnected(this._base.ERROR_OTHER_ERROR, aException.toString());
-  },
-
-  /* Callbacks for Query stanzas */
-  /* When a vCard is recieved */
-  onVCard: function(aName, aStanza) {
-    let vCard = null;
-    try {
-      vCard = Stanza.parseVCard(aStanza);
-    } catch(e) {
-      debug(e);
-    }
-
-    if (!vCard)
-      return;
-
-    //FIXME: Bug buddies dissappear when their name is set while their are online
-    if (this._buddies.hasOwnProperty(normalize(vCard.jid.jid))) {
-      let b = this._buddies[normalize(vCard.jid.jid)];
-      if (vCard.fullname)
-        b.serverAlias = vCard.fullname;
-      if (vCard.icon) {
-        b.buddyIconFilename = vCard.icon;
-      }
-    }
-  },
-
-  /* When the roster is received */
-  onRoster: function(aName, aStanza) {
-    let q = aStanza.getChildren("query");
-    for (let i = 0; i < q.length; ++i) {
-      if (q[i].uri == $NS.roster) {
-        let items = q[i].getChildren("item");
-        for (let j = 0; j < items.length; ++j) {
-          this._addBuddy("friends", items[j].attributes["jid"], items[j].attributes["name"]);
-        }
-      }
-    }
-
-    this._rosterReceived();
-  },
-
-  _rosterReceived: function() {
-    this._setInitialStatus();
-  },
-
-  _setInitialStatus: function() {
-    let s = Stanza.presence({"xml:lang": "en"},
-         [Stanza.node("show", null, null, "chat"),
-          Stanza.node("status", null, null, "")]);
-    this._connection.sendStanza(s);
-  },
-
-  gotDisconnected: function(aError, aErrorMessage) {
-    if (aError === undefined)
-      aError = this._base.NO_ERROR;
-    this.base.disconnecting(aError, aErrorMessage);
-    this.base.disconnected();
-  },
-
-
-  /* Public methods */
-  /* Send a message to a buddy */
-  sendMessage: function(aTo, aMsg) {
-    let s = Stanza.message(aTo, null,
-        Stanza.node("body", null, {}, aMsg));
-
-    this._connection.sendStanza(s);
-  },
-
-  /* Create a new conversation */
-  createConversation: function(aNormalizedName) {
-    if (!this._buddies.hasOwnProperty(aNormalizedName)) {
-      debug("No buddy: " + aNormalizedName);
-      return null;
-    }
-
-    if (!this._conv.hasOwnProperty(aNormalizedName)) {
-      this._conv[aNormalizedName] = new Conversation(this, this._buddies[aNormalizedName]);
-    }
-
-    return this._conv[aNormalizedName];
-  },
-
-  /* Remove an existing conversation */
-  removeConversation: function(aNormalizedName) {
-    this._conv[aNormalizedName] = null;
-  },
-
-  /* Private methods */
-
-  /* Disconnect from the server */
-  _disconnect: function() {
-    for (let b in this._buddies) {
-      this._buddies[b].setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
-    }
-
-    this._connection.disconnect();
-  },
-
-
-  /* Create a tag - helper function */
-  _createTag: function(aTagName) {
-    return Components.classes["@instantbird.org/purple/tags-service;1"]
-                     .getService(Ci.imITagsService)
-                     .createTag(aTagName);
-  },
-
-  /* Retrieves a buddy - helper function */
-  _getBuddy: function(normalizedName) {
-    return Components.classes["@instantbird.org/purple/contacts-service;1"]
-              .getService(Ci.imIContactsService)
-              .getBuddyByNameAndProtocol(normalizedName, this.protocol);
-  },
-
-  /* Add a new buddy to the local storage */
-  _addBuddy: function(aTagName, aName, aAlias) {
-    let s = Stanza.iq("get", null, aName,
-        Stanza.node("vCard", "vcard-temp", {}, []));
-    this._connection.sendStanza(s, this.onVCard, this);
-
-    if (this._buddies.hasOwnProperty(normalize(aName))) {
-      debug("locally present");
-      return;
-    }
-    let self = this;
-
-    setTimeout(function() {
-      let tag = self._createTag(aTagName);
-      let buddy = new AccountBuddy(self, null, tag, aName);
-
-      Components.classes["@instantbird.org/purple/contacts-service;1"]
-                .getService(Ci.imIContactsService)
-                .accountBuddyAdded(buddy);
-
-      if (aAlias)
-        buddy.serverAlias = aAlias;
-      self._buddies[normalize(aName)] = buddy;
-    }, 0);
-  },
-
-  /* Set the user statue on the server */
-  _statusChanged: function(aStatusType, aMsg) {
-    let show = "";
-
-    aMsg = aMsg || "";
-    if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
-      show = "chat";
-    }
-    else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
-      show = "dnd";
-    }
-    else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
-      show = "away";
-    }
-    else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
-      //TODO: disconnect
-      show = "xa";
-    }
-    let s = Stanza.presence({"xml:lang": "en"},
-         [Stanza.node("show", null, null, show),
-          Stanza.node("status", null, null, aMsg)]);
-    this._connection.sendStanza(s);
-  },
+  _constructAccountBuddy: function(aBuddy, aTag, aName) {
+    return new AccountBuddy(this, aBuddy, aTag, aName);
+  }
 };
 
 function GTalkAccount(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
-
-  /* A map of on going conversations */
-  this._conv = {},
-
-  /* Map of buddies */
-  this._buddies = {},
-
-  Services.obs.addObserver(this, "status-changed", false);
 }
 
 GTalkAccount.prototype = {
-  __proto__: Account.prototype,
+  __proto__: XMPPAccountPrototype,
+
   _supportSharedStatus: false,
   _supportMailNotifications: false,
   _mailConv: null,
   _tid: null,
+
+  getConnectionParameters: function() {
+    return {server: "talk.google.com",
+            port: 443,
+            ssl: true,
+            starttls: false};
+  },
+
+  _constructConversation: function(buddy) {
+    return new Conversation(this, buddy);
+  },
+
+  _constructAccountBuddy: function(aBuddy, aTag, aName) {
+    return new AccountBuddy(this, aBuddy, aTag, aName);
+  },
 
   _rosterReceived: function() {
     let s = Stanza.iq("get", null, "gmail.com",
@@ -515,7 +220,7 @@ XMPPProtocol.prototype = {
   __proto__: GenericProtocolPrototype,
   get name() "xmpp-js",
   get noPassword() false,
-  getAccount: function(aKey, aName) new Account(this, aKey, aName),
+  getAccount: function(aKey, aName) new XAccount(this, aKey, aName),
   classID: Components.ID("{c3eb26eb-eaa2-441f-a695-9512199bdbed}"),
 /*
   usernameSplits: [
@@ -539,19 +244,7 @@ GTalkProtocol.prototype = {
   get name() "gtalk-js",
   get noPassword() false,
   getAccount: function(aKey, aName) new GTalkAccount(this, aKey, aName),
-  classID: Components.ID("{c4eb26eb-eaa2-441f-a695-9512199bdbed}"),
-/*
-  usernameSplits: [
-    {label: "Server", separator: "@", defaultValue: "irc.freenode.com",
-     reverse: true}
-  ],
-*/
-  options: {
-    "server": {label: "Server", default: "talk.google.com"},
-    "port": {label: "Port", default: 443},
-    "ssl": {label: "Use SSL", default: true},
-    "starttls": {label: "Use StartTLS", default: false},
-  }
+  classID: Components.ID("{c4eb26eb-eaa2-441f-a695-9512199bdbed}")
 };
 
 const NSGetFactory = XPCOMUtils.generateNSGetFactory([GTalkProtocol, XMPPProtocol]);
