@@ -20,12 +20,10 @@ When you want to upgrade the extension with new code committed go to the folder 
 
 Create a new account - Go to Account and click New Account
 
-Select xmpp-js as your protocol.
+Select xmpp-js or gtalk-js as your protocol.
 
 ###For a gtalk account
 For the username enter your email address (e.g. john@gmail.com), and then the password.
-
-Then for xmpp-js options enter the server "talk.google.com" (without quotes)and port "443" (without quotes), and select "Use SSL" option.
 
 ###For a facebook account
 
