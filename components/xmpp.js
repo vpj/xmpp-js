@@ -58,7 +58,7 @@ AccountBuddy.prototype = {
 
   get canSendMessage() true
 };
-  
+
 function XMPPAccount(aProtoInstance, aKey, aName)
 {
   this._init(aProtoInstance, aKey, aName);
@@ -80,6 +80,45 @@ XMPPAccount.prototype = {
 
   _constructAccountBuddy: function(aBuddy, aTag, aName) {
     return new AccountBuddy(this, aBuddy, aTag, aName);
+  }
+};
+
+function MailNotificationConversation(aAccount) {
+  this._init(aAccount, "New emails");
+}
+
+MailNotificationConversation.prototype = {
+  __proto__: GenericConversationPrototype,
+
+  sendMsg: function() {
+  },
+
+  appendNewEmail: function(aEmail) {
+    dump(aEmail.convertToString());
+    let senders = aEmail.getElements(["mail-thread-info", "senders", "sender"]);
+    let senderName = "";
+    for each(let sender in senders) {
+      senderName += sender.attributes["name"] ? sender.attributes["name"] : sender.attributes["address"];
+      senderName += " ";
+    }
+    let subject = aEmail.getElement(["mail-thread-info", "subject"]);
+    let subjectText = "";
+    if(subject) {
+      subjectText = subject.innerXML();
+    }
+
+    let snippet = aEmail.getElement(["mail-thread-info", "snippet"]);
+    let snippetText = "";
+    if(snippet) {
+      snippetText = snippet.innerXML();
+    }
+
+    this.writeMessage(senderName, "<b>" + subjectText + "</b>: " + snippetText);
+  },
+
+  close: function() {
+    GenericConversationPrototype.close.call(this);
+    this.account.removeMailConv();
   }
 };
 
@@ -150,14 +189,21 @@ GTalkAccount.prototype = {
     this._connection.sendStanza(s, this.newMail, this);
   },
 
+  removeMailConv: function() {
+    this._mailConv = null;
+  },
+
   newMail: function(aName, aStanza) {
     let mail = aStanza.getElements(["iq", "mailbox", "mail-thread-info"]);
     for (let i = mail.length - 1; i >= 0; --i) {
-      /* TODO: notify mail */
-      dump(mail[i].convertToString());
       if (!this._tid || (this._tid < mail[i].attributes.tid))
         this._tid = mail[i].attributes.tid;
       dump(this._tid);
+      if(!this._mailConv) {
+        this._mailConv = new MailNotificationConversation(this);
+      }
+
+      this._mailConv.appendNewEmail(mail[i]);
     }
   },
 
@@ -224,7 +270,7 @@ XMPPProtocol.prototype = {
   __proto__: GenericProtocolPrototype,
   get name() "xmpp-js",
   get noPassword() false,
-  getAccount: function(aKey, aName) new Account(this, aKey, aName),
+  getAccount: function(aKey, aName) new XMPPAccount(this, aKey, aName),
 
   classID: Components.ID("{dde786d1-6f59-43d0-9bc8-b505a757fb30}"),
 /*

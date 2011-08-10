@@ -64,8 +64,7 @@ const XMPPConversationPrototype = {
 
   /* Called when the user closed the conversation */
   close: function() {
-    Services.obs.notifyObservers(this, "closing-conversation", null);
-    Services.conversations.removeConversation(this);
+    GenericConvIMPrototype.close.call(this);
     this.account.removeConversation(this.buddy.normalizedName);
   }
 };
@@ -307,7 +306,7 @@ const XMPPAccountPrototype = {
 
   /* Remove an existing conversation */
   removeConversation: function(aNormalizedName) {
-    this._conv[aNormalizedName] = null;
+    delete this._conv[aNormalizedName];
   },
 
   /* Private methods */

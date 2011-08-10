@@ -45,6 +45,7 @@ var EXPORTED_SYMBOLS = [
   "GenericTooltipInfo",
   "GenericAccountPrototype",
   "GenericAccountBuddyPrototype",
+  "GenericConversationPrototype",
   "GenericConvIMPrototype",
   "GenericConvChatPrototype",
   "GenericConvChatBuddyPrototype",
