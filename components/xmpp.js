@@ -224,8 +224,9 @@ XMPPProtocol.prototype = {
   __proto__: GenericProtocolPrototype,
   get name() "xmpp-js",
   get noPassword() false,
-  getAccount: function(aKey, aName) new XAccount(this, aKey, aName),
-  classID: Components.ID("{c3eb26eb-eaa2-441f-a695-9512199bdbed}"),
+  getAccount: function(aKey, aName) new Account(this, aKey, aName),
+
+  classID: Components.ID("{dde786d1-6f59-43d0-9bc8-b505a757fb30}"),
 /*
   usernameSplits: [
     {label: "Server", separator: "@", defaultValue: "irc.freenode.com",
@@ -248,7 +249,7 @@ GTalkProtocol.prototype = {
   get name() "gtalk-js",
   get noPassword() false,
   getAccount: function(aKey, aName) new GTalkAccount(this, aKey, aName),
-  classID: Components.ID("{c4eb26eb-eaa2-441f-a695-9512199bdbed}")
+  classID: Components.ID("{38a224c1-6748-49a9-8ab2-efc362b1000d}")
 };
 
 const NSGetFactory = XPCOMUtils.generateNSGetFactory([GTalkProtocol, XMPPProtocol]);

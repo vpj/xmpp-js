@@ -1,8 +1,8 @@
 resource	xmpp-js	modules/
 
-component {c4eb26eb-eaa2-441f-a695-9512199bdbed} components/xmpp.js
-component {c3eb26eb-eaa2-441f-a695-9512199bdbed} components/xmpp.js
-contract @instantbird.org/purple/xmpp;1 {c4eb26eb-eaa2-441f-a695-9512199bdbed}
-contract @instantbird.org/purple/xmpp;2 {c3eb26eb-eaa2-441f-a695-9512199bdbed}
+component {dde786d1-6f59-43d0-9bc8-b505a757fb30} components/xmpp.js
+component {38a224c1-6748-49a9-8ab2-efc362b1000d} components/xmpp.js
+contract @instantbird.org/purple/xmpp;1 {dde786d1-6f59-43d0-9bc8-b505a757fb30}
+contract @instantbird.org/purple/xmpp;2 {38a224c1-6748-49a9-8ab2-efc362b1000d}
 category js-protocol-plugin @instantbird.org/purple/xmpp;1 @instantbird.org/purple/xmpp;1
 category js-protocol-plugin @instantbird.org/purple/xmpp;2 @instantbird.org/purple/xmpp;2
