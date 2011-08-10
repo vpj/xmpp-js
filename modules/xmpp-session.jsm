@@ -95,7 +95,7 @@ XMPPSession.prototype = {
    * when the server responds to the stanza with
    * a stanza of the same id. */
   sendStanza: function(aStanza, aCallback, aObject) {
-    if(!aStanza.attributes.hasOwnProperty("id"))
+    if (!aStanza.attributes.hasOwnProperty("id"))
      aStanza.attributes["id"] = this.id();
     if (aCallback)
       this._events.add(aStanza.attributes.id, aCallback, aObject);

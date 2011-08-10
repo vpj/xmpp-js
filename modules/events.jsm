@@ -43,7 +43,7 @@ StanzaEventManager.prototype = {
   add: function(aId, aCallback, aObj/*, aNodes*/) {
     if (!aObj)
       aObj = aCallback;
-//    if(!aNodes) {
+//    if (!aNodes) {
     this.handlers[aId] = {cb: aCallback, obj: aObj};
 //    } else {
 //     this.stanzaHandlers[this.stanzaHandlerId] = {cb: aCallback, obj: aObj};

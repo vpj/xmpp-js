@@ -362,7 +362,7 @@ const Socket = {
     this.log("onStopRequest (" + aStatus + "," + aContext + "," + aRequest + ")");
     if (aStatus == NS_ERROR_NET_RESET)
       this.onConnectionReset();
-    if(aStatus == 0)
+    if (aStatus == 0)
       this.onConnectionReset();
   },
 

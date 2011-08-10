@@ -221,7 +221,7 @@ XMPPConnection.prototype = {
   },
 
   onError: function(aError, aException) {
-    if(aError != "parsing-characters")
+    if (aError != "parsing-characters")
       Cu.reportError(aError + ": " + aException);
     if (aError != "parse-warning" && aError != "parsing-characters") {
       this._listener.onError(aError, aException);

@@ -53,7 +53,11 @@ function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
 }
 
-AccountBuddy.prototype = XMPPAccountBuddyPrototype;
+AccountBuddy.prototype = {
+  __proto__: XMPPAccountBuddyPrototype,
+
+  get canSendMessage() true
+};
   
 function XMPPAccount(aProtoInstance, aKey, aName)
 {
@@ -115,22 +119,22 @@ GTalkAccount.prototype = {
 
   onDiscoItems: function(aName, aStanza) {
     let features = aStanza.getElements(["iq", "query", "feature"]);
-    for(let i = 0; i < features.length; ++i) {
-      if(features[i].attributes["var"] == "google:shared-status")
+    for (let i = 0; i < features.length; ++i) {
+      if (features[i].attributes["var"] == "google:shared-status")
         this._supportSharedStatus = true;
-      if(features[i].attributes["var"] == "google:mail:notify")
+      if (features[i].attributes["var"] == "google:mail:notify")
         this._supportMailNotifications = true;
     }
 
     this._setInitialStatus();
 
-    if(this._supportSharedStatus) {
+    if (this._supportSharedStatus) {
       let s = Stanza.iq("get", null, this._JID.jid,
            Stanza.node("query", "google:shared-status", {version: 2}, []));
       this._connection.sendStanza(s, this.onSharedStatus, this);
     }
 
-    if(this._supportMailNotifications) {
+    if (this._supportMailNotifications) {
       this._getMail();
 
       let t = Stanza.iq("set", null, this._JID.jid,
@@ -148,18 +152,18 @@ GTalkAccount.prototype = {
 
   newMail: function(aName, aStanza) {
     let mail = aStanza.getElements(["iq", "mailbox", "mail-thread-info"]);
-    for(let i = mail.length - 1; i >= 0; --i) {
+    for (let i = mail.length - 1; i >= 0; --i) {
       /* TODO: notify mail */
       dump(mail[i].convertToString());
-      if(!this._tid || (this._tid < mail[i].attributes.tid))
+      if (!this._tid || (this._tid < mail[i].attributes.tid))
         this._tid = mail[i].attributes.tid;
       dump(this._tid);
     }
   },
 
   onIQStanza: function(aName, aStanza) {
-    if(aStanza.attributes["type"] == "set") {
-      if(aStanza.getChildren("new-mail").length > 0) {
+    if (aStanza.attributes["type"] == "set") {
+      if (aStanza.getChildren("new-mail").length > 0) {
         let s = Stanza.iq("result", aStanza.attributes.id, this._JID.jid, []);
         this._connection.sendStanza(s);
         this._getMail();
@@ -196,7 +200,7 @@ GTalkAccount.prototype = {
       show = "chat";
       invisible = true;
     }
-    if(!this._supportSharedStatus) {
+    if (!this._supportSharedStatus) {
       let s = Stanza.presence({"xml:lang": "en"},
            [Stanza.node("show", null, null, show),
             Stanza.node("status", null, null, aMsg)]);
