@@ -39,6 +39,7 @@ Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-session.jsm");
 
+/* Helper class for buddy conversations */
 const XMPPConversationPrototype = {
   __proto__: GenericConvIMPrototype,
 
@@ -69,6 +70,7 @@ const XMPPConversationPrototype = {
   }
 };
 
+/* Helper class for buddies */
 const XMPPAccountBuddyPrototype = {
   __proto__: GenericAccountBuddyPrototype,
 
@@ -87,15 +89,16 @@ const XMPPAccountBuddyPrototype = {
   }
 };
 
+/* Helper class for account */
 const XMPPAccountPrototype = {
   __proto__: GenericAccountPrototype,
 
-  _jid: null,
-  _password: null,
-  _server: null,
-  _port: null,
-  _connection: null, /* XMPP Connection */
-  _security: null,
+  _jid: null, // Jabber ID
+  _password: null, // password
+  _server: null, // server domain
+  _port: null, // port
+  _connection: null, // XMPP Connection
+  _security: null, // Conneciton security
 
   _init: function(aProtoInstance, aKey, aName) {
     GenericAccountPrototype._init.call(this, aProtoInstance, aKey, aName);
@@ -114,11 +117,13 @@ const XMPPAccountPrototype = {
     this._statusChanged(aSubject.currentStatusType, aSubject.currentStatusMessage);
   },
 
+  /* This funciton should be overridden */
   getConnectionParameters: function() {
-    return {server: "",
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+    /*return {server: "",
             port: 0,
             ssl: false,
-            starttls: false};
+            starttls: false};*/
   },
 
   /* GenericAccountPrototype events */
@@ -286,8 +291,16 @@ const XMPPAccountPrototype = {
     this._connection.sendStanza(s);
   },
 
+  /* Returns a conversation object
+     Should be overridden */
   constructConversation: function(buddy) {
-    return null;
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+  },
+
+  /* Returns an account buddy object
+     Should be overridden */
+  constructAccountBuddy: function(aBuddy, aTag, aName) {
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
 
   /* Create a new conversation */
