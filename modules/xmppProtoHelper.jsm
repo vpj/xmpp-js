@@ -159,7 +159,7 @@ const XMPPAccountPrototype = {
    * Called for each buddy locally stored before connecting
    * to the server. */
   loadBuddy: function(aBuddy, aTag) {
-    let buddy = this._constructAccountBuddy(aBuddy, aTag);
+    let buddy = this.constructAccountBuddy(aBuddy, aTag);
     this._buddies[buddy.normalizedName] = buddy;
     debug("loadBuddy " + buddy.normalizedName);
     return buddy;
@@ -255,10 +255,10 @@ const XMPPAccountPrototype = {
       }
     }
 
-    this._rosterReceived();
+    this.rosterReceived();
   },
 
-  _rosterReceived: function() {
+  rosterReceived: function() {
     this._setInitialStatus();
   },
 
@@ -286,7 +286,7 @@ const XMPPAccountPrototype = {
     this._connection.sendStanza(s);
   },
 
-  _constructConversation: function(buddy) {
+  constructConversation: function(buddy) {
     return null;
   },
 
@@ -298,7 +298,7 @@ const XMPPAccountPrototype = {
     }
 
     if (!this._conv.hasOwnProperty(aNormalizedName)) {
-      this._conv[aNormalizedName] = this._constructConversation(this._buddies[aNormalizedName]);
+      this._conv[aNormalizedName] = this.constructConversation(this._buddies[aNormalizedName]);
     }
 
     return this._conv[aNormalizedName];
@@ -349,7 +349,7 @@ const XMPPAccountPrototype = {
 
     setTimeout(function() {
       let tag = self._createTag(aTagName);
-      let buddy = self._constructAccountBuddy(null, tag, aName);
+      let buddy = self.constructAccountBuddy(null, tag, aName);
 
       Components.classes["@instantbird.org/purple/contacts-service;1"]
                 .getService(Ci.imIContactsService)
@@ -376,8 +376,7 @@ const XMPPAccountPrototype = {
       show = "away";
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
-      //TODO: disconnect
-      show = "xa";
+      this.disconnect();
     }
     let s = Stanza.presence({"xml:lang": "en"},
          [Stanza.node("show", null, null, show),

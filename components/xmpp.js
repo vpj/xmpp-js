@@ -36,6 +36,7 @@ Cu.import("resource://xmpp-js/xmlnode.jsm");
 Cu.import("resource://xmpp-js/xmpp-session.jsm");
 Cu.import("resource://xmpp-js/xmppProtoHelper.jsm");
 
+/* Coneversation for chats with buddies */
 function Conversation(aAccount, aBuddy)
 {
   this._init(aAccount, aBuddy);
@@ -43,30 +44,29 @@ function Conversation(aAccount, aBuddy)
 
 Conversation.prototype = XMPPConversationPrototype;
 
+/* Tooltips to show buddy information */
 function TooltipInfo(aType, aLabel, aValue) {
   this._init(aType, aLabel, aValue);
 }
 
 TooltipInfo.prototype = GenericTooltipInfo;
 
+/* Chat buddies */
 function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
 }
 
-AccountBuddy.prototype = {
-  __proto__: XMPPAccountBuddyPrototype,
+AccountBuddy.prototype = XMPPAccountBuddyPrototype;
 
-  get canSendMessage() true
-};
-
-function XMPPAccount(aProtoInstance, aKey, aName)
-{
+/* XMPP Account */
+function XMPPAccount(aProtoInstance, aKey, aName) {
   this._init(aProtoInstance, aKey, aName);
 }
 
 XMPPAccount.prototype = {
   __proto__: XMPPAccountPrototype,
 
+  /* Connection parameters */
   getConnectionParameters: function() {
     return {server: this.getString("server"),
             port: this.getInt("port"),
@@ -74,15 +74,30 @@ XMPPAccount.prototype = {
             starttls: this.getBool("starttls")};
   },
 
-  _constructConversation: function(buddy) {
+  /* Creates a Conversation */
+  constructConversation: function(buddy) {
     return new Conversation(this, buddy);
   },
 
-  _constructAccountBuddy: function(aBuddy, aTag, aName) {
+  /* Creates an Account Buddy */
+  constructAccountBuddy: function(aBuddy, aTag, aName) {
     return new AccountBuddy(this, aBuddy, aTag, aName);
   }
 };
 
+/* GTalk Chat buddies */
+function GTalkAccountBuddy(aAccount, aBuddy, aTag, aUserName) {
+  this._init(aAccount, aBuddy, aTag, aUserName);
+}
+
+GTalkAccountBuddy.prototype = {
+  __proto__: XMPPAccountBuddyPrototype,
+
+  /* Can send messages to buddies who appear offline */
+  get canSendMessage() true
+};
+
+/* Conversation window to display email notifications from Gmail */
 function MailNotificationConversation(aAccount) {
   this._init(aAccount, "New emails");
 }
@@ -90,23 +105,33 @@ function MailNotificationConversation(aAccount) {
 MailNotificationConversation.prototype = {
   __proto__: GenericConversationPrototype,
 
+  /* Cannot send messages in this conversation window */
   sendMsg: function() {
   },
 
+  /* Adds a new email to the new email window */
   appendNewEmail: function(aEmail) {
     dump(aEmail.convertToString());
+    /* Get sender List */
     let senders = aEmail.getElements(["mail-thread-info", "senders", "sender"]);
     let senderName = "";
-    for each(let sender in senders) {
+    for each (let sender in senders) {
+      if (senderName != "")
+        senderName += ", ";
+
       senderName += sender.attributes["name"] ? sender.attributes["name"] : sender.attributes["address"];
-      senderName += " ";
     }
+
+    /* Get subject */
     let subject = aEmail.getElement(["mail-thread-info", "subject"]);
     let subjectText = "";
     if(subject) {
       subjectText = subject.innerXML();
     }
+    if(subjectText == "")
+      subjectText = "(no subject)";
 
+    /* Get email snippet */
     let snippet = aEmail.getElement(["mail-thread-info", "snippet"]);
     let snippetText = "";
     if(snippet) {
@@ -116,25 +141,28 @@ MailNotificationConversation.prototype = {
     this.writeMessage(senderName, "<b>" + subjectText + "</b>: " + snippetText);
   },
 
+  /* Called when the user closes the window */
   close: function() {
     GenericConversationPrototype.close.call(this);
     this.account.removeMailConv();
   }
 };
 
-function GTalkAccount(aProtoInstance, aKey, aName)
-{
+/* GTalk Account */
+function GTalkAccount(aProtoInstance, aKey, aName) {
   this._init(aProtoInstance, aKey, aName);
 }
 
 GTalkAccount.prototype = {
   __proto__: XMPPAccountPrototype,
 
-  _supportSharedStatus: false,
-  _supportMailNotifications: false,
-  _mailConv: null,
-  _tid: null,
+  _supportSharedStatus: false, // Whether the server supports shared statuses
+  _supportMailNotifications: false, // Whther the server supports email notifications
 
+  _mailConv: null, // New mail notification window
+  _tid: null, // Thread ID of the last received email notification
+
+  /* Connection parameters */
   getConnectionParameters: function() {
     return {server: "talk.google.com",
             port: 443,
@@ -142,22 +170,28 @@ GTalkAccount.prototype = {
             starttls: false};
   },
 
-  _constructConversation: function(buddy) {
+  /* Creates a conversation */
+  constructConversation: function(buddy) {
     return new Conversation(this, buddy);
   },
 
-  _constructAccountBuddy: function(aBuddy, aTag, aName) {
-    return new AccountBuddy(this, aBuddy, aTag, aName);
+  /* Creates an account buddy */
+  constructAccountBuddy: function(aBuddy, aTag, aName) {
+    return new GTalkAccountBuddy(this, aBuddy, aTag, aName);
   },
 
-  _rosterReceived: function() {
+  /* This is called after receiving the roster */
+  rosterReceived: function() {
     let s = Stanza.iq("get", null, "gmail.com",
          Stanza.node("query", $NS.disco_info, {}, []));
     this._connection.sendStanza(s, this.onDiscoItems, this);
   },
 
+  /* This is called when disco items are received */
   onDiscoItems: function(aName, aStanza) {
+    /* Extract features */
     let features = aStanza.getElements(["iq", "query", "feature"]);
+
     for (let i = 0; i < features.length; ++i) {
       if (features[i].attributes["var"] == "google:shared-status")
         this._supportSharedStatus = true;
@@ -167,12 +201,14 @@ GTalkAccount.prototype = {
 
     this._setInitialStatus();
 
+    /* GTalk Shared Status */
     if (this._supportSharedStatus) {
       let s = Stanza.iq("get", null, this._JID.jid,
            Stanza.node("query", "google:shared-status", {version: 2}, []));
       this._connection.sendStanza(s, this.onSharedStatus, this);
     }
 
+    /* Email notifications */
     if (this._supportMailNotifications) {
       this._getMail();
 
@@ -183,16 +219,19 @@ GTalkAccount.prototype = {
     }
   },
 
+  /* Get recent emails */
   _getMail: function(tid) {
     let s = Stanza.iq("get", "mail-request-1", this._JID.jid,
          Stanza.node("query", "google:mail:notify", {}, []));
     this._connection.sendStanza(s, this.newMail, this);
   },
 
+  /* Remove new email notification conversation */
   removeMailConv: function() {
     this._mailConv = null;
   },
 
+  /* Called when email information is received */
   newMail: function(aName, aStanza) {
     let mail = aStanza.getElements(["iq", "mailbox", "mail-thread-info"]);
     for (let i = mail.length - 1; i >= 0; --i) {
@@ -207,8 +246,10 @@ GTalkAccount.prototype = {
     }
   },
 
+  /* Called when an IQ stanza is received */
   onIQStanza: function(aName, aStanza) {
     if (aStanza.attributes["type"] == "set") {
+      /* Capture new-email event */
       if (aStanza.getChildren("new-mail").length > 0) {
         let s = Stanza.iq("result", aStanza.attributes.id, this._JID.jid, []);
         this._connection.sendStanza(s);
@@ -227,7 +268,7 @@ GTalkAccount.prototype = {
     this._connection.sendStanza(s);
   },
 
-  /* Set the user statue on the server */
+  /* Set the user status on the server */
   _statusChanged: function(aStatusType, aMsg) {
     let show = "";
     let invisible = false;
@@ -242,10 +283,14 @@ GTalkAccount.prototype = {
     else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
       show = "away";
     }
-    else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+    else if (aStatusType == Ci.imIStatusInfo.STATUS_INVISIBLE) {
       show = "chat";
       invisible = true;
+    } else if(aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+      this.disconnect();
     }
+
+    /* Shared status */
     if (!this._supportSharedStatus) {
       let s = Stanza.presence({"xml:lang": "en"},
            [Stanza.node("show", null, null, show),
@@ -263,6 +308,7 @@ GTalkAccount.prototype = {
   },
 };
 
+/* XMPP Protocol */
 function XMPPProtocol() {
 }
 
@@ -273,12 +319,7 @@ XMPPProtocol.prototype = {
   getAccount: function(aKey, aName) new XMPPAccount(this, aKey, aName),
 
   classID: Components.ID("{dde786d1-6f59-43d0-9bc8-b505a757fb30}"),
-/*
-  usernameSplits: [
-    {label: "Server", separator: "@", defaultValue: "irc.freenode.com",
-     reverse: true}
-  ],
-*/
+
   options: {
     "server": {label: "Server", default: "talk.google.com"},
     "port": {label: "Port", default: 443},
@@ -287,6 +328,7 @@ XMPPProtocol.prototype = {
   }
 };
 
+/* GTalk protocol */
 function GTalkProtocol() {
 }
 

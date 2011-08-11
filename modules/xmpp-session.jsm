@@ -81,13 +81,14 @@ XMPPSession.prototype = {
     if (this._state == STATE.session_started) {
       this.send("</stream:stream>");
     }
-    this._connection.close();
     this.setState(STATE.disconnected);
+    this._connection.close();
   },
 
   /* Send a text message to the server */
   send: function(aMsg) {
-    this._connection.send(aMsg);
+    if(this._state != STATE.disconnected)
+      this._connection.send(aMsg);
   },
 
   /* Send a stanza to the server.
@@ -139,7 +140,8 @@ XMPPSession.prototype = {
 
   /* The conenction got disconnected */
   onDisconnected: function(aError, aException) {
-    this._listener.onError("disconnected-" + aError, "Disconnected: " + aException);
+    if (this._state != STATE.disconnected)
+      this._listener.onError("disconnected-" + aError, "Disconnected: " + aException);
   },
 
   /* On error in the connection */
