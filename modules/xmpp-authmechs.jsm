@@ -77,10 +77,10 @@ DigestMD5Auth.prototype = {
     let reg = /"|'/g;
     let result = {};
 
-    for (let i = 0; i < list.length; ++i) {
-      let e = list[i].split("=");
+    for each (let elem in list) {
+      let e = elem.split("=");
       if (e.length != 2) {
-        throw "Error decoding: " + list[i];
+        throw "Error decoding: " + elem;
       }
 
       result[e[0]] = e[1].replace(reg, "");

@@ -192,10 +192,10 @@ GTalkAccount.prototype = {
     /* Extract features */
     let features = aStanza.getElements(["iq", "query", "feature"]);
 
-    for (let i = 0; i < features.length; ++i) {
-      if (features[i].attributes["var"] == "google:shared-status")
+    for each (let feature in features) {
+      if (feature.attributes["var"] == "google:shared-status")
         this._supportSharedStatus = true;
-      if (features[i].attributes["var"] == "google:mail:notify")
+      if (feature.attributes["var"] == "google:mail:notify")
         this._supportMailNotifications = true;
     }
 

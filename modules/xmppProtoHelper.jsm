@@ -251,11 +251,11 @@ const XMPPAccountPrototype = {
   /* When the roster is received */
   onRoster: function(aName, aStanza) {
     let q = aStanza.getChildren("query");
-    for (let i = 0; i < q.length; ++i) {
-      if (q[i].uri == $NS.roster) {
-        let items = q[i].getChildren("item");
-        for (let j = 0; j < items.length; ++j) {
-          this._addBuddy("friends", items[j].attributes["jid"], items[j].attributes["name"]);
+    for each (let qe in q) {
+      if (qe.uri == $NS.roster) {
+        let items = qe.getChildren("item");
+        for each (let item in items) {
+          this._addBuddy("friends", item.attributes["jid"], item.attributes["name"]);
         }
       }
     }

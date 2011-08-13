@@ -174,9 +174,9 @@ XMPPSession.prototype = {
 
         let mechs = this._getMechanisms(aStanza);
         this.debug(mechs);
-        for (let i = 0; i < mechs.length; ++i) {
-          if (this._authMechs.hasOwnProperty(mechs[i])) {
-            this._auth = new this._authMechs[mechs[i]](
+        for each (let mech in mechs) {
+          if (this._authMechs.hasOwnProperty(mech)) {
+            this._auth = new this._authMechs[mech](
                 this._jid.node, this._password, this._domain);
             break;
           }
@@ -267,10 +267,10 @@ XMPPSession.prototype = {
       return [];
     let mechs = aStanza.getChildren("mechanisms");
     let res = [];
-    for (let i = 0; i < mechs.length; ++i) {
-      let mech = mechs[i].getChildren("mechanism");
-      for (let j = 0; j < mech.length; ++j) {
-        res.push(mech[j].innerXML());
+    for each (let m in mechs) {
+      let mech = m.getChildren("mechanism");
+      for each (let s in mech) {
+        res.push(s.innerXML());
       }
     }
     return res;
@@ -283,11 +283,11 @@ XMPPSession.prototype = {
     let required = false;
     let optional = false;
     let starttls = aStanza.getChildren("starttls");
-    for (let i = 0; i < starttls.length; ++i) {
-      for (let j = 0; j < starttls[i].children.length; ++j) {
-        if (starttls[i].children[j].localName == "required")
+    for each (let st in starttls) {
+      for each (let opt in st.children) {
+        if (opt.localName == "required")
           required = true;
-        else if (starttls[i].children[j].localName == "optional")
+        else if (opt.localName == "optional")
           optional = true;
       }
     }

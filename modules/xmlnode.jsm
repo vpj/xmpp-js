@@ -157,8 +157,7 @@ const Stanza = {
     if (v.length <= 0)
       return null;
     v = v[0];
-    for (let i = 0; i < v.children.length; ++i) {
-      let c = v.children[i];
+    for each (let c in v.children) {
       if (c.type == "node") {
         if (c.localName == "FN")
           vCard.fullname = c.innerXML();
@@ -235,8 +234,8 @@ const Stanza = {
 
   _addChildren: function(aNode, aData) {
     if (Array.isArray(aData)) {
-      for (let i = 0; i < aData.length; ++i)
-        Stanza._addChild(aNode, aData[i]);
+      for each (let data in aData)
+        Stanza._addChild(aNode, data);
     }
     else {
       Stanza._addChild(aNode, aData);
@@ -309,8 +308,8 @@ XMLNode.prototype = {
 
    let c = this.getChildren(aQuery[1]);
    let nq = aQuery.slice(1);
-   for (let i = 0; i < c.length; ++i) {
-     let n = c[i].getElement(nq);
+   for each (let child in c) {
+     let n = child.getElement(nq);
      if (n)
        return n;
    }
@@ -330,8 +329,8 @@ XMLNode.prototype = {
    let c = this.getChildren(aQuery[1]);
    let nq = aQuery.slice(1);
    let res = [];
-   for (let i = 0; i < c.length; ++i) {
-     let n = c[i].getElements(nq);
+   for each (let child in c) {
+     let n = child.getElements(nq);
      res = res.concat(n);
    }
 
@@ -362,8 +361,8 @@ XMLNode.prototype = {
 
     let s = aIndent + "<" + this.qName + " " + this._getXmlns() + " " + this._getAttributeText() + ">\n";
 
-    for (let i = 0; i < this.children.length; ++i) {
-      s += this.children[i].convertToString(aIndent + " ");
+    for each (let child in this.children) {
+      s += child.convertToString(aIndent + " ");
     }
     s += aIndent + "</" + this.qName + ">\n";
 
@@ -380,8 +379,8 @@ XMLNode.prototype = {
   /* Returns the inner XML */
   innerXML: function() {
     let s = "";
-    for (let i = 0; i < this.children.length; ++i) {
-      s += this.children[i].getXML();
+    for each (let child in this.children) {
+      s += child.getXML();
     }
 
     return s;
