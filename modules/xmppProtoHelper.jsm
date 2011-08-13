@@ -336,16 +336,13 @@ const XMPPAccountPrototype = {
 
   /* Create a tag - helper function */
   _createTag: function(aTagName) {
-    return Components.classes["@instantbird.org/purple/tags-service;1"]
-                     .getService(Ci.imITagsService)
-                     .createTag(aTagName);
+    return Services.tags.createTag(aTagName);
   },
 
   /* Retrieves a buddy - helper function */
   _getBuddy: function(normalizedName) {
-    return Components.classes["@instantbird.org/purple/contacts-service;1"]
-              .getService(Ci.imIContactsService)
-              .getBuddyByNameAndProtocol(normalizedName, this.protocol);
+    return Services.contacts
+               .getBuddyByNameAndProtocol(normalizedName, this.protocol);
   },
 
   /* Add a new buddy to the local storage */
@@ -364,9 +361,7 @@ const XMPPAccountPrototype = {
       let tag = self._createTag(aTagName);
       let buddy = self.constructAccountBuddy(null, tag, aName);
 
-      Components.classes["@instantbird.org/purple/contacts-service;1"]
-                .getService(Ci.imIContactsService)
-                .accountBuddyAdded(buddy);
+      Services.contacts.accountBuddyAdded(buddy);
 
       if (aAlias)
         buddy.serverAlias = aAlias;
