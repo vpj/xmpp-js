@@ -240,7 +240,6 @@ const XMPPAccountPrototype = {
       if (!vCard)
         return;
 
-      //FIXME: Bug buddies dissappear when their name is set while their are online
       if (self._buddies.hasOwnProperty(normalize(vCard.jid.jid))) {
         let b = self._buddies[normalize(vCard.jid.jid)];
         if (vCard.fullname)
