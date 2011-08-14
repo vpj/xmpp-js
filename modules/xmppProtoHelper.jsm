@@ -227,25 +227,30 @@ const XMPPAccountPrototype = {
   /* Callbacks for Query stanzas */
   /* When a vCard is recieved */
   onVCard: function(aName, aStanza) {
-    let vCard = null;
-    try {
-      vCard = Stanza.parseVCard(aStanza);
-    } catch(e) {
-      debug(e);
-    }
+    let self = this;
 
-    if (!vCard)
-      return;
-
-    //FIXME: Bug buddies dissappear when their name is set while their are online
-    if (this._buddies.hasOwnProperty(normalize(vCard.jid.jid))) {
-      let b = this._buddies[normalize(vCard.jid.jid)];
-      if (vCard.fullname)
-        b.serverAlias = vCard.fullname;
-      if (vCard.icon) {
-        b.buddyIconFilename = vCard.icon;
+    setTimeout(function() {
+      let vCard = null;
+      try {
+        vCard = Stanza.parseVCard(aStanza);
+      } catch(e) {
+        debug(e);
       }
-    }
+
+      if (!vCard)
+        return;
+
+      //FIXME: Bug buddies dissappear when their name is set while their are online
+      if (self._buddies.hasOwnProperty(normalize(vCard.jid.jid))) {
+        let b = self._buddies[normalize(vCard.jid.jid)];
+        if (vCard.fullname)
+          b.serverAlias = vCard.fullname;
+        if (vCard.icon) {
+//          Cu.reportError(vCard.icon);
+          b.buddyIconFilename = vCard.icon;
+        }
+      }
+    }, 0);
   },
 
   /* When the roster is received */
