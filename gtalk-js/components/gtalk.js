@@ -56,33 +56,6 @@ function AccountBuddy(aAccount, aBuddy, aTag, aUserName) {
 
 AccountBuddy.prototype = XMPPAccountBuddyPrototype;
 
-/* XMPP Account */
-function XMPPAccount(aProtoInstance, aKey, aName) {
-  this._init(aProtoInstance, aKey, aName);
-}
-
-XMPPAccount.prototype = {
-  __proto__: XMPPAccountPrototype,
-
-  /* Connection parameters */
-  getConnectionParameters: function() {
-    return {server: this.getString("server"),
-            port: this.getInt("port"),
-            ssl: this.getBool("ssl"),
-            starttls: this.getBool("starttls")};
-  },
-
-  /* Creates a Conversation */
-  constructConversation: function(buddy) {
-    return new Conversation(this, buddy);
-  },
-
-  /* Creates an Account Buddy */
-  constructAccountBuddy: function(aBuddy, aTag, aName) {
-    return new AccountBuddy(this, aBuddy, aTag, aName);
-  }
-};
-
 /* GTalk Chat buddies */
 function GTalkAccountBuddy(aAccount, aBuddy, aTag, aUserName) {
   this._init(aAccount, aBuddy, aTag, aUserName);
@@ -309,26 +282,6 @@ GTalkAccount.prototype = {
   },
 };
 
-/* XMPP Protocol */
-function XMPPProtocol() {
-}
-
-XMPPProtocol.prototype = {
-  __proto__: GenericProtocolPrototype,
-  get name() "xmpp-js",
-  get noPassword() false,
-  getAccount: function(aKey, aName) new XMPPAccount(this, aKey, aName),
-
-  classID: Components.ID("{dde786d1-6f59-43d0-9bc8-b505a757fb30}"),
-
-  options: {
-    "server": {label: "Server", default: "talk.google.com"},
-    "port": {label: "Port", default: 443},
-    "ssl": {label: "Use SSL", default: true},
-    "starttls": {label: "Use StartTLS", default: false},
-  }
-};
-
 /* GTalk protocol */
 function GTalkProtocol() {
 }
@@ -341,5 +294,5 @@ GTalkProtocol.prototype = {
   classID: Components.ID("{38a224c1-6748-49a9-8ab2-efc362b1000d}")
 };
 
-const NSGetFactory = XPCOMUtils.generateNSGetFactory([GTalkProtocol, XMPPProtocol]);
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([GTalkProtocol]);
 

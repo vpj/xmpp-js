@@ -40,13 +40,13 @@
 
 	<Description about="urn:mozilla:install-manifest">
 		<!-- Extension Information //-->
-		<em:id>xmpp-js@vpj</em:id>
+		<em:id>gtalk-js@vpj</em:id>
 		<em:version>0.1</em:version>
 		<em:type>2</em:type> <!-- Extension //-->
 
 		<!-- Front End MetaData //-->
-		<em:name>XMPP in JavaScript</em:name>
-		<em:description>XMPP implementation in JavaScript</em:description>
+		<em:name>Gtalk plugin</em:name>
+		<em:description>Example GTalk plugin using xmpp-js</em:description>
 		<em:creator>Varuna Jayasiri</em:creator>
 
 		<!-- Internal References //-->
