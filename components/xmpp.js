@@ -31,9 +31,7 @@ Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://xmpp-js/jsProtoHelper.jsm");
 Cu.import("resource://xmpp-js/utils.jsm");
-Cu.import("resource://xmpp-js/socket.jsm");
 Cu.import("resource://xmpp-js/xmlnode.jsm");
-Cu.import("resource://xmpp-js/xmpp-session.jsm");
 Cu.import("resource://xmpp-js/xmppProtoHelper.jsm");
 
 /* Coneversation for chats with buddies */
