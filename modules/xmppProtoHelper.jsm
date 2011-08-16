@@ -46,6 +46,7 @@ const XMPPConversationPrototype = {
   _opened: false,
   _typingTimer: null,
   _supportChatStateNotifications: true,
+  _typingState: "active",
 
   _init: function(aAccount, aBuddy) {
     this.buddy = aBuddy;
@@ -71,10 +72,13 @@ const XMPPConversationPrototype = {
       self.finishedComposing();
       }, 10000);
 
-    /* to, msg, state, attrib, data */
-    let s = Stanza.message(this.buddy.userName, null, "composing");
+    if(this._typingState != "composing") {
+      /* to, msg, state, attrib, data */
+      let s = Stanza.message(this.buddy.userName, null, "composing");
 
-    this.account.sendStanza(s);
+      this.account.sendStanza(s);
+      this._typingState = "composing";
+    }
   },
 
   /* Send a finished composing message */
@@ -82,9 +86,12 @@ const XMPPConversationPrototype = {
     if(!this._supportChatStateNotifications)
       return;
 
-    let s = Stanza.message(this.buddy.userName, null, "paused");
+    if(this._typingState != "paused") {
+      let s = Stanza.message(this.buddy.userName, null, "paused");
 
-    this.account.sendStanza(s);
+      this.account.sendStanza(s);
+      this._typingState = "paused";
+    }
   },
 
   /* Called when the user enters a chat message */
@@ -103,6 +110,7 @@ const XMPPConversationPrototype = {
 
     this.account.sendStanza(s);
     this.writeMessage("You", aMsg, {outgoing: true});
+    this._typingState = "active";
   },
 
   /* Called by the account when a messsage is received from the buddy */
@@ -262,7 +270,18 @@ const XMPPAccountPrototype = {
       return;
 
     /* TODO: Chat statues */
-    this._conv[norm].incomingMessage(m.body);
+    if(m.body)
+      this._conv[norm].incomingMessage(m.body);
+
+    if(m.state) {
+      debug(m.state);
+      if(m.state == "active")
+       this._conv[norm].updateTyping(Ci.purpleIConvIM.NOT_TYPING);
+      else if(m.state == "composing")
+       this._conv[norm].updateTyping(Ci.purpleIConvIM.TYPING);
+      else if(m.state == "paused")
+       this._conv[norm].updateTyping(Ci.purpleIConvIM.TYPED);
+     }
   },
 
   /* Called when there is an error in the xmpp session */

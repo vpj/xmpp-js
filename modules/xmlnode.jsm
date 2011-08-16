@@ -196,13 +196,18 @@ const Stanza = {
   /* Parse a message stanza */
   parseMessage: function(aStanza) {
     let m = {from: null,
-             body: ""};
+             body: null,
+             state: null};
     m.from = parseJID(aStanza.attributes["from"]);
     let b = aStanza.getChildren("body");
     if (b.length > 0)
       m.body = b[0].innerXML();
 
-    /* TODO chat state */
+    let s = aStanza.getChildrenByNS($NS.chatstates)
+    if(s.length > 0) {
+      m.state = s[0].localName;
+    }
+
     return m;
   },
 
@@ -306,6 +311,18 @@ XMLNode.prototype = {
   /* Add text node */
   addText: function(aText) {
     this.children.push(new TextNode(aText));
+  },
+
+  /* Get child elements by namespace */
+  getChildrenByNS: function(aNS) {
+    let res = [];
+
+    for each(var c in this.children) {
+      if(c.uri == aNS)
+      res.push(c);
+    }
+
+    return res;
   },
 
   /* Get an element inside the node using a query */
