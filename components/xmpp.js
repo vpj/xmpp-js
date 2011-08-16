@@ -248,6 +248,9 @@ GTalkAccount.prototype = {
 
   /* Called when an IQ stanza is received */
   onIQStanza: function(aName, aStanza) {
+    if (aStanza.attributes["type"] == "get") {
+      Cu.reportError(aStanza.convertToString());
+    }
     if (aStanza.attributes["type"] == "set") {
       /* Capture new-email event */
       if (aStanza.getChildren("new-mail").length > 0) {

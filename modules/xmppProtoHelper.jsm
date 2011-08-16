@@ -43,18 +43,65 @@ Cu.import("resource://xmpp-js/xmpp-session.jsm");
 const XMPPConversationPrototype = {
   __proto__: GenericConvIMPrototype,
 
+  _opened: false,
+  _typingTimer: null,
+  _supportChatStateNotifications: true,
+
   _init: function(aAccount, aBuddy) {
     this.buddy = aBuddy;
     this.account = aAccount;
     this._name = aBuddy.contactDisplayName;
     this._observers = [];
-    this._opened = false;
     Services.conversations.addConversation(this);
+  },
+
+  /* Called when the user is typing a message
+   * aLength - length of the typed message */
+  sendTyping: function(aLength) {
+    if(!this._supportChatStateNotifications)
+      return;
+
+    if(this._typingTimer) {
+      clearTimeout(this._typingTimer);
+    }
+
+    let self = this;
+
+    this._typingTimer = setTimeout(function() {
+      self.finishedComposing();
+      }, 10000);
+
+    /* to, msg, state, attrib, data */
+    let s = Stanza.message(this.buddy.userName, null, "composing");
+
+    this.account.sendStanza(s);
+  },
+
+  /* Send a finished composing message */
+  finishedComposing: function() {
+    if(!this._supportChatStateNotifications)
+      return;
+
+    let s = Stanza.message(this.buddy.userName, null, "paused");
+
+    this.account.sendStanza(s);
   },
 
   /* Called when the user enters a chat message */
   sendMsg: function (aMsg) {
-    this.account.sendMessage(this.buddy.userName, aMsg);
+    if(this._typingTimer) {
+      clearTimeout(this._typingTimer);
+    }
+
+    let cs = null;
+
+    if(this._supportChatStateNotifications) {
+      cs = "active";
+    }
+
+    let s = Stanza.message(this.buddy.userName, aMsg, cs);
+
+    this.account.sendStanza(s);
     this.writeMessage("You", aMsg, {outgoing: true});
   },
 
@@ -214,6 +261,7 @@ const XMPPAccountPrototype = {
     if (!this.createConversation(norm))
       return;
 
+    /* TODO: Chat statues */
     this._conv[norm].incomingMessage(m.body);
   },
 
@@ -287,12 +335,9 @@ const XMPPAccountPrototype = {
 
 
   /* Public methods */
-  /* Send a message to a buddy */
-  sendMessage: function(aTo, aMsg) {
-    let s = Stanza.message(aTo, null,
-        Stanza.node("body", null, {}, aMsg));
-
-    this._connection.sendStanza(s);
+  /* Send a stanza to a buddy */
+  sendStanza: function(aStanza) {
+    this._connection.sendStanza(aStanza);
   },
 
   /* Returns a conversation object

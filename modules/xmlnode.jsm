@@ -174,11 +174,21 @@ const Stanza = {
   },
 
   /* Create a message stanza */
-  message: function(aTo, aAttr, aData) {
+  message: function(aTo, aMsg, aState, aAttr, aData) {
     if (!aAttr)
       aAttr = {};
 
     aAttr["to"] = aTo;
+    aAttr["type"] = "chat";
+
+    if(!aData)
+      aData = [];
+
+    if(aMsg)
+      aData.push(Stanza.node("body", null, {}, aMsg));
+
+    if(aState)
+      aData.push(Stanza.node(aState, $NS.chatstates, {}, []));
 
     return Stanza.node("message", null, aAttr, aData);
   },
@@ -192,6 +202,7 @@ const Stanza = {
     if (b.length > 0)
       m.body = b[0].innerXML();
 
+    /* TODO chat state */
     return m;
   },
 
