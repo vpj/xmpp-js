@@ -56,6 +56,9 @@ const XMPPConversationPrototype = {
     Services.conversations.addConversation(this);
   },
 
+  set supportChatStateNotifications(val) {
+    this._supportChatStateNotifications = val; },
+
   /* Called when the user is typing a message
    * aLength - length of the typed message */
   sendTyping: function(aLength) {
@@ -281,7 +284,10 @@ const XMPPAccountPrototype = {
        this._conv[norm].updateTyping(Ci.purpleIConvIM.TYPING);
       else if(m.state == "paused")
        this._conv[norm].updateTyping(Ci.purpleIConvIM.TYPED);
-     }
+    }
+    else {
+      this._conv[norm].supportChatStateNotifications = false;
+    }
   },
 
   /* Called when there is an error in the xmpp session */
