@@ -121,70 +121,14 @@ function debugJSON(debugJSON) {
   debug(JSON.stringify(aObject));
 }
 
-// BASE 64 ---------------------------------------------------------------------
-/**
- *  Base 64 encoding and decoding class. If there is internal function, use
- *  them, else use our implemented functions
- */
+/* Base 664 encoding and decoding */
 const b64 = {
-  /**
-   *  Taken from http://www.webtoolkit.info/
-   */
-  _key : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
-
   encode: function(aInput) {
-    let output = "";
-    let chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-    let i = 0;
-
-    while (i < aInput.length) {
-      chr1 = aInput.charCodeAt(i++);
-      chr2 = aInput.charCodeAt(i++);
-      chr3 = aInput.charCodeAt(i++);
-
-      enc1 = chr1 >> 2;
-      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-      enc4 = chr3 & 63;
-
-      if (isNaN(chr2))
-        enc3 = enc4 = 64;
-      else if (isNaN(chr3))
-        enc4 = 64;
-
-      output = output +
-        this._key.charAt(enc1) + this._key.charAt(enc2) +
-        this._key.charAt(enc3) + this._key.charAt(enc4);
-    }
-    return output;
+    return btoa(aInput);
   },
 
   decode : function(aInput) {
-    let output = "";
-    let chr1, chr2, chr3;
-    let enc1, enc2, enc3, enc4;
-    let i = 0;
-
-    aInput = aInput.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-
-    while (i < aInput.length) {
-      enc1 = this._key.indexOf(aInput.charAt(i++));
-      enc2 = this._key.indexOf(aInput.charAt(i++));
-      enc3 = this._key.indexOf(aInput.charAt(i++));
-      enc4 = this._key.indexOf(aInput.charAt(i++));
-
-      chr1 = (enc1 << 2) | (enc2 >> 4);
-      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-      chr3 = ((enc3 & 3) << 6) | enc4;
-
-      output = output + String.fromCharCode(chr1);
-
-      if (enc3 != 64)
-        output = output + String.fromCharCode(chr2);
-      if (enc4 != 64)
-        output = output + String.fromCharCode(chr3);
-    }
-    return output;
+    return atob(aInput);
   }
 };
 
