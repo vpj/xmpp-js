@@ -35,8 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-var EXPORTED_SYMBOLS = ["async",
-                        "log",
+var EXPORTED_SYMBOLS = ["log",
                         "debug",
                         "saveIcon",
                         "debugJSON",
@@ -101,14 +100,6 @@ function saveIcon(aJid, aType, aEncodedContent) {
 
   let URI = ios.newFileURI(file);
   return URI.spec;
-}
-
-function async(aFunction) {
-  Cc["@mozilla.org/timer;1"]
-      .createInstance(Ci.nsITimer)
-      .initWithCallback({notify: function(timer) aFunction() },
-                        0,
-                        Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
 /* Print debugging output */
