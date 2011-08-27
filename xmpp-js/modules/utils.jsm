@@ -128,6 +128,7 @@ const b64 = {
   },
 
   decode : function(aInput) {
+    aInput = aInput.replace(/[^A-Za-z0-9\+\/\=]/g, "");
     return atob(aInput);
   }
 };
