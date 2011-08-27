@@ -36,7 +36,7 @@
 
 var EXPORTED_SYMBOLS = ["TextNode", "XMLNode", "Stanza", "$NS"];
 
-const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
+const {interfaces: Ci, results: Cr, utils: Cu} = Components;
 
 Cu.import("resource://xmpp-js/utils.jsm");
 

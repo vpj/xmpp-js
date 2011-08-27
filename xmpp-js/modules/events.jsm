@@ -37,8 +37,6 @@
 /* TODO: Events if certain elements are present */
 var EXPORTED_SYMBOLS = ["StanzaEventManager"];
 
-const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
-
 function StanzaEventManager() {
   this.handlers = {};
   /*

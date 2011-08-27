@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
+const Cu = Components.utils;
 
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");

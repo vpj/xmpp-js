@@ -38,7 +38,7 @@ var EXPORTED_SYMBOLS = ["XMPPConversationPrototype",
                         "XMPPAccountBuddyPrototype",
                         "XMPPAccountPrototype"];
 
-const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
+const {interfaces: Ci, results: Cr, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");

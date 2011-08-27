@@ -60,12 +60,10 @@ var EXPORTED_SYMBOLS = [
   replace doXHRequest with a more generic 'HTTP' object
 */
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-Components.utils.import("resource:///modules/imServices.jsm");
+const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/imServices.jsm");
 
 function LOG(aString)
 {
@@ -838,7 +836,7 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis) {
       if (aOnLoad)
         aOnLoad.call(aThis, target.responseText);
     } catch (e) {
-      Components.utils.reportError(e);
+      Cu.reportError(e);
       if (aOnError)
         aOnError.call(aThis, e, aRequest.target.responseText);
     }

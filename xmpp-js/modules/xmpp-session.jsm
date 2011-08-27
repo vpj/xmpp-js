@@ -37,7 +37,7 @@
 
 var EXPORTED_SYMBOLS = ["XMPPSession"];
 
-const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
+const Cu = Components.utils;
 
 Cu.import("resource://xmpp-js/utils.jsm");
 Cu.import("resource://xmpp-js/socket.jsm");
