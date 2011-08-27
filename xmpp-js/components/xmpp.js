@@ -75,10 +75,18 @@ XMPPAccount.prototype = {
 
   /* Connection parameters */
   getConnectionParameters: function() {
+    let sec = [];
+
+    if(this.getBool("ssl"))
+      sec.push("ssl");
+    if(this.getBool("starttls"))
+      sec.push("starttls");
+
     return {server: this.getString("server"),
             port: this.getInt("port"),
-            ssl: this.getBool("ssl"),
-            starttls: this.getBool("starttls")};
+            security: sec,
+            jid: this.name,
+            password: this.password};
   },
 
   /* Creates a Conversation */
