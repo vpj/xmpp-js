@@ -116,30 +116,9 @@ function log(aString) {
   Services.console.logStringMessage("" + aString);
 }
 
-/* Get a JSON string for an object */
-function getJSON(aObject) {
-  if (typeof(aObject) == "undefined" || !aObject) {
-    return "null";
-  }
-
-  let res = "";
-
-  if (typeof(aObject) == "object") {
-    res = "{"
-    for (let v in aObject) {
-      res += " " + v + " = " + getJSON(aObject[v]) + "\n";
-    }
-    res += "}";
-  }
-  else
-    res = "" + aObject;
-
-  return res;
-}
-
 /* Print a object for debugging */
 function debugJSON(debugJSON) {
-  debug(getJSON(aObject));
+  debug(JSON.stringify(aObject));
 }
 
 function utf8_encode(aString) {
