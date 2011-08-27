@@ -137,8 +137,9 @@ GTalkAccount.prototype = {
   getConnectionParameters: function() {
     return {server: "talk.google.com",
             port: 443,
-            ssl: true,
-            starttls: false};
+            security: ["ssl"],
+            jid: this.name,
+            password: this.password};
   },
 
   /* Creates a conversation */

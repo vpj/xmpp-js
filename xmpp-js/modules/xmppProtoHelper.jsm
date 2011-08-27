@@ -189,20 +189,13 @@ const XMPPAccountPrototype = {
   connect: function() {
     this.base.connecting();
 
-    this._jid = this.name;
-    this._JID = parseJID(this._jid);
-    this._password = this.password;
-
     var params = this.getConnectionParameters();
+    this._jid = params.jid;
+    this._JID = parseJID(this._jid);
+    this._password = params.password;
     this._server = params.server;
     this._port = params.port;
-    this._security = [];
-    if (params.ssl) {
-      this._security.push("ssl");
-    }
-    if (params.starttls) {
-      this._security.push("starttls");
-    }
+    this._security = params.security;
 
     this._connection =
         new XMPPSession(this._server, this._port, this._security,
@@ -224,7 +217,6 @@ const XMPPAccountPrototype = {
   loadBuddy: function(aBuddy, aTag) {
     let buddy = this.constructAccountBuddy(aBuddy, aTag);
     this._buddies[buddy.normalizedName] = buddy;
-    debug("loadBuddy " + buddy.normalizedName);
     return buddy;
   },
 
@@ -351,6 +343,7 @@ const XMPPAccountPrototype = {
     this._connection.sendStanza(s);
   },
 
+  /* When the sesion gets disconnection */
   gotDisconnected: function(aError, aErrorMessage) {
     if (aError === undefined)
       aError = this._base.NO_ERROR;
@@ -380,7 +373,7 @@ const XMPPAccountPrototype = {
   /* Create a new conversation */
   createConversation: function(aNormalizedName) {
     if (!this._buddies.hasOwnProperty(aNormalizedName)) {
-      debug("No buddy: " + aNormalizedName);
+      Cu.reportError("Trying to create a conversation; buddy not present: " + aNormalizedName);
       return null;
     }
 
@@ -425,10 +418,9 @@ const XMPPAccountPrototype = {
         Stanza.node("vCard", "vcard-temp", {}, []));
     this._connection.sendStanza(s, this.onVCard, this);
 
-    if (this._buddies.hasOwnProperty(normalize(aName))) {
-      debug("locally present");
+    if (this._buddies.hasOwnProperty(normalize(aName)))
       return;
-    }
+
     let self = this;
 
     setTimeout(function() {
