@@ -167,6 +167,12 @@ const XMPPAccountPrototype = {
   _connection: null, // XMPP Connection
   _security: null, // Conneciton security
 
+  _connected: false, // Whether the session is connected
+  _disconnectedBecuaseStatus: false,
+
+  _statusShow: "chat",
+  _statusMsg: "",
+
   _init: function(aProtoInstance, aKey, aName) {
     GenericAccountPrototype._init.call(this, aProtoInstance, aKey, aName);
 
@@ -212,6 +218,7 @@ const XMPPAccountPrototype = {
         this);
 
     this._connection.connect();
+    this._connected = true;
   },
 
   /* Disconnect from the server */
@@ -347,8 +354,8 @@ const XMPPAccountPrototype = {
 
   _setInitialStatus: function() {
     let s = Stanza.presence({"xml:lang": "en"},
-         [Stanza.node("show", null, null, "chat"),
-          Stanza.node("status", null, null, "")]);
+         [Stanza.node("show", null, null, this._statusShow),
+          Stanza.node("status", null, null, this._statusMsg)]);
     this._connection.sendStanza(s);
   },
 
@@ -407,6 +414,8 @@ const XMPPAccountPrototype = {
     }
 
     this._connection.disconnect();
+    this._connected = false;
+    this._disconnectedBecuaseStatus = false;
   },
 
 
@@ -444,27 +453,51 @@ const XMPPAccountPrototype = {
     }, 0);
   },
 
+  statusOnline: function(aOnline) {
+    if(aOnline && !this._connected && this._disconnectedBecuaseStatus) {
+      this.connect();
+      return false;
+    }
+
+    if(!aOnline && this.connected) {
+      this.disconnect();
+      this._disconnectedBecuaseStatus = true;
+      return false;
+    }
+
+    return true;
+  },
+
   /* Set the user statue on the server */
   _statusChanged: function(aStatusType, aMsg) {
     let show = "";
+    let setPresence = true;
 
     aMsg = aMsg || "";
     if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
       show = "chat";
+      setPresence = this.statusOnline(true);
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
       show = "dnd";
+      setPresence = this.statusOnline(true);
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
       show = "away";
+      setPresence = this.statusOnline(true);
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
-      this.disconnect();
+      setPresence = this.statusOnline(false);
     }
-    let s = Stanza.presence({"xml:lang": "en"},
-         [Stanza.node("show", null, null, show),
-          Stanza.node("status", null, null, aMsg)]);
-    this._connection.sendStanza(s);
+    if(setPresence) {
+      let s = Stanza.presence({"xml:lang": "en"},
+           [Stanza.node("show", null, null, show),
+            Stanza.node("status", null, null, aMsg)]);
+      this._connection.sendStanza(s);
+    }
+
+    this._statusShow = show;
+    this._statusMsg = aMsg;
   },
 };
 

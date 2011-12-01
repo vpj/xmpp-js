@@ -142,6 +142,8 @@ GTalkAccount.prototype = {
   _mailConv: null, // New mail notification window
   _tid: null, // Thread ID of the last received email notification
 
+  _statusInvisible: false,
+
   /* Connection parameters */
   getConnectionParameters: function() {
     return {server: "talk.google.com",
@@ -246,9 +248,9 @@ GTalkAccount.prototype = {
     /* Append to list of statuses */
     let s = Stanza.iq("set", null, null,
          Stanza.node("query", "google:shared-status", {version: 2},
-           [Stanza.node("status", null, {}, ""),
-            Stanza.node("show", null, {}, "default"),
-            Stanza.node("invisible", null, {value:false}, [])]));
+           [Stanza.node("status", null, {}, this._statusMsg),
+            Stanza.node("show", null, {}, this._statusShow),
+            Stanza.node("invisible", null, {value:this._statusInvisible}, [])]));
     this._connection.sendStanza(s);
   },
 
@@ -256,39 +258,50 @@ GTalkAccount.prototype = {
   _statusChanged: function(aStatusType, aMsg) {
     let show = "";
     let invisible = false;
+    let setPresence = true;
 
     aMsg = aMsg || "";
     if (aStatusType == Ci.imIStatusInfo.STATUS_AVAILABLE) {
       show = "chat";
+      setPresence = this.statusOnline(true);
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_UNAVAILABLE) {
       show = "dnd";
+      setPresence = this.statusOnline(true);
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_AWAY) {
       show = "away";
+      setPresence = this.statusOnline(true);
     }
     else if (aStatusType == Ci.imIStatusInfo.STATUS_INVISIBLE) {
       show = "chat";
       invisible = true;
+      setPresence = this.statusOnline(true);
     } else if(aStatusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
-      this.disconnect();
+      setPresence = this.statusOnline(false);
     }
 
-    /* Shared status */
-    if (!this._supportSharedStatus) {
-      let s = Stanza.presence({"xml:lang": "en"},
-           [Stanza.node("show", null, null, show),
-            Stanza.node("status", null, null, aMsg)]);
-      this._connection.sendStanza(s);
+    if(setPresence) {
+      /* Shared status */
+      if (!this._supportSharedStatus) {
+        let s = Stanza.presence({"xml:lang": "en"},
+             [Stanza.node("show", null, null, show),
+              Stanza.node("status", null, null, aMsg)]);
+        this._connection.sendStanza(s);
+      }
+      else {
+        let s = Stanza.iq("set", null, null,
+             Stanza.node("query", "google:shared-status", {version: 2},
+               [Stanza.node("status", null, {}, aMsg),
+                Stanza.node("show", null, {}, show),
+                Stanza.node("invisible", null, {value:invisible}, [])]));
+        this._connection.sendStanza(s);
+      }
     }
-    else {
-      let s = Stanza.iq("set", null, null,
-           Stanza.node("query", "google:shared-status", {version: 2},
-             [Stanza.node("status", null, {}, aMsg),
-              Stanza.node("show", null, {}, show),
-              Stanza.node("invisible", null, {value:invisible}, [])]));
-      this._connection.sendStanza(s);
-    }
+
+    this._statusShow = show;
+    this._statusMsg = aMsg;
+    this._statusInvisible = invisible;
   },
 };
 

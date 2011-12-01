@@ -156,7 +156,7 @@ var MD5 = {
     return r;
   },
 
-  hash: function (s) {
+  hash: function (str) {
     var chrsz   = 8;  /* bits per input character. 8 - ASCII; 16 - Unicode */
     let bin = [];
     let mask = (1 << chrsz) - 1;
